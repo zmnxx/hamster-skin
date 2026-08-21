@@ -1,0 +1,141 @@
+name: build-skin
+
+# 手动触发。改数值用 tools/skin_fastedit.py 直接改成品 yaml 就够了，
+# 只有改结构（增删按键、改布局比例）才需要跑这里的全量编译。
+on:
+  workflow_dispatch:
+    inputs:
+      skin_name:
+        description: '皮肤名（决定 .cskin 内的目录名与文件名）'
+        required: false
+        default: '万象键盘 空山键帽'
+      make_release:
+        description: '同时发一个 Release（tag 用 version.txt 的内容）'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write   # make_release 需要写 tag / release
+
+jobs:
+  # 故意只用一个 job：Actions 按 job 向上取整到整分钟计费，
+  # 拆成多个各跑 20 秒的 job 反而更贵。
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 装 jsonnet
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq jsonnet
+          jsonnet --version
+
+      - name: 编译 jsonnet → yaml
+        id: compile
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/out"
+          # jsonnet -m 不会自己建子目录，先建好
+          mkdir -p "$OUT/light" "$OUT/dark"
+          cd jsonnet
+          START=$(date +%s)
+          # -S 输出裸字符串：main.jsonnet 每个键都是 std.toString(...) 的结果
+          jsonnet -J . -S -m "$OUT" main.jsonnet
+          echo "compile_seconds=$(( $(date +%s) - START ))" >> "$GITHUB_OUTPUT"
+          echo "== 产物 =="
+          find "$OUT" -name '*.yaml' | sort | sed "s|$OUT/||"
+          echo "共 $(find "$OUT" -name '*.yaml' | wc -l) 个文件"
+
+      - name: 校验 yaml 可解析 + 样式引用完整性
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/out" <<'PY'
+          import sys, glob, os, yaml
+          # 用 libyaml 的 C 解析器，纯 Python 版慢好几倍
+          L = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
+          out = sys.argv[1]
+          STYLE_KEYS = ('backgroundStyle', 'foregroundStyle', 'hintStyle', 'cellStyle',
+                        'candidateStyle', 'hintSymbolsStyle', 'selectedBackgroundStyle')
+          total_dangling = 0
+          files = sorted(glob.glob(os.path.join(out, '*', '*.yaml')))
+          assert files, '没有产出任何 yaml'
+          for f in files:
+              doc = yaml.load(open(f), Loader=L)
+              assert isinstance(doc, dict) and doc, f'{f} 解析结果为空'
+              missing = set()
+              def walk(n):
+                  if isinstance(n, dict):
+                      for k, v in n.items():
+                          if k in STYLE_KEYS and isinstance(v, str) and v not in doc:
+                              missing.add(v)
+                          walk(v)
+                  elif isinstance(n, list):
+                      for v in n:
+                          walk(v)
+              walk(doc)
+              total_dangling += len(missing)
+          print(f'✓ {len(files)} 个 yaml 全部可解析')
+          # 万象基线本身就带几百处悬空引用（历史问题），所以只报数不失败
+          print(f'  悬空样式引用 {total_dangling} 处（基线本身就有，看增量即可）')
+          PY
+
+      - name: 组装皮肤目录并打包 .cskin
+        id: pack
+        env:
+          SKIN_NAME: ${{ inputs.skin_name }}
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/out"
+          STAGE="$RUNNER_TEMP/stage/$SKIN_NAME"
+          mkdir -p "$STAGE"
+          # 编译产物：config.yaml + light/ dark/ 下的键盘 yaml
+          cp "$OUT/config.yaml" "$STAGE/"
+          cp -r "$OUT/light" "$OUT/dark" "$STAGE/"
+          # 贴图等资源不经过 jsonnet，直接从仓库拷进去
+          mkdir -p "$STAGE/light/resources" "$STAGE/dark/resources"
+          cp -r resources/light/. "$STAGE/light/resources/"
+          cp -r resources/dark/.  "$STAGE/dark/resources/"
+          # 应用内的皮肤预览图 + 说明 + 版本号
+          cp demo.png README.md version.txt "$STAGE/"
+          # jsonnet 源码也一并带上，方便 fork 后自己改
+          cp -r jsonnet "$STAGE/"
+
+          VER=$(tr -d '[:space:]' < version.txt)
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          # .cskin 就是 zip，包内必须有一层以皮肤名命名的目录
+          cd "$RUNNER_TEMP/stage"
+          zip -r -q -X "$RUNNER_TEMP/$SKIN_NAME.cskin" "$SKIN_NAME"
+          cd "$RUNNER_TEMP"
+          echo "== 包内容 =="
+          unzip -l "$SKIN_NAME.cskin" | tail -3
+          echo "cskin_path=$RUNNER_TEMP/$SKIN_NAME.cskin" >> "$GITHUB_OUTPUT"
+
+      - name: 上传 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cskin
+          path: ${{ steps.pack.outputs.cskin_path }}
+          # 下载完就没必要留着，避免吃存储配额
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: 发 Release（可选）
+        if: ${{ inputs.make_release }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.pack.outputs.version }}
+          name: ${{ steps.pack.outputs.version }}
+          files: ${{ steps.pack.outputs.cskin_path }}
+          generate_release_notes: true
+
+      - name: 小结
+        run: |
+          echo "### 编译完成" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- jsonnet 编译耗时 **${{ steps.compile.outputs.compile_seconds }}s**" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 版本 \`${{ steps.pack.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 到本次运行页面底部的 Artifacts 下载 \`cskin\`" >> "$GITHUB_STEP_SUMMARY"
