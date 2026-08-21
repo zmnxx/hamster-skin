@@ -1,0 +1,4 @@
+.fastedit_cache.json
+.fastedit_stamps.json
+*.cskin
+__pycache__/
