@@ -257,19 +257,21 @@ local getToolBar(theme, overrides={}) =
     // 于是符号键盘纵向候选栏的删除键会没有图标。
     verticalCandidateBackspaceButton: makeSystemButtonStyle('verticalCandidateBackspaceButtonForegroundStyle', 'backspace'),
 
-    // 工具栏 / 候选栏背景。
+    // 工具栏 / 预编辑区 / 候选栏背景。
     //
-    // 用「键盘背景颜色」而不是「toolbar背景颜色」：原本工具栏是 2B2B2B 灰、
-    // 按键区是 0A0A0A 近黑，两者拼在一起时工具栏明显发灰、像另一块面板。
-    // 直接引用键盘底色，工具栏与下方键盘就是同一块表面。
-    // cornerRadius 取工具栏高度的一半 → 两端半圆的胶囊形。
-    // 用 geometry 而非位图：换 toolbar_height 时圆角自动跟着变，且无锯齿。
-    toolbarBackgroundStyle: styleFactories.makeGeometryStyle(
-      color[theme]['键盘背景颜色'],
-      { cornerRadius: Settings.toolbar_config.toolbar_height / 2 }
-    ),
-    // 预编辑区与纵向候选栏跟工具栏不同高（preedit 15pt、纵向候选占满键盘），
-    // 套上面那个胶囊半径会变成怪异的圆头条，所以它们用同色但不带圆角的平面。
+    // 三件事一起解决：
+    // 1) 原本工具栏是 2B2B2B 灰、按键区 0A0A0A 近黑，拼在一起工具栏明显发灰；
+    // 2) 后来改成和键盘同色 + 胶囊圆角，结果四角切口露出系统背板（1C1C1E，
+    //    偏灰），把整块黑啃出灰豁口，比发灰更难看；
+    // 3) iOS 26 系统键盘自带整块圆角背板，皮肤再自刷一层就和它的圆角对不上色。
+    //
+    // 现在统一引用「键盘背景颜色」，而该令牌在 iOS26 深色下已改成几乎全透明
+    // （1C1C1E01），于是工具栏、预编辑区、候选栏、按键区全部透出同一块系统
+    // 背板，圆角由系统负责，四角天然吻合。
+    // 不再写 cornerRadius —— 自己画圆角就会重新产生对不上色的切口。
+    toolbarBackgroundStyle: styleFactories.makeGeometryStyle(color[theme]['键盘背景颜色']),
+    // 预编辑区与纵向候选栏与工具栏不同高，但既然都是透明底，共用一个即可。
+    // 保留独立样式名是为了以后想给某一区单独上色时有挂点。
     toolbarFlatBackgroundStyle: styleFactories.makeGeometryStyle(color[theme]['键盘背景颜色']),
     // 横向候选栏与工具栏同高，容器沿用胶囊；里层的 collection 必须透明，
     // 否则会在胶囊上再压一个直角矩形，把两端的圆角切掉。

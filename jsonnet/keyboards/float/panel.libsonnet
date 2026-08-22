@@ -220,7 +220,11 @@ local keyboard(theme, orientation) =
       //   image: 'IMG1',
       // },
       type: 'original',
-      normalColor: color[theme]['键盘背景颜色'],
+      // 这里必须用不透明色，不能跟着「键盘背景颜色」走。
+      // 主键盘的背景已改成几乎全透明（交给 iOS 26 系统背板），但浮动面板是
+      // 悬浮在键盘之上的独立层，下面没有系统背板托底 —— 用透明色会直接看穿
+      // 到 App 内容，面板等于没有背景。
+      normalColor: color[theme]['浮动面板背景颜色'],
       cornerRadius: Settings.cornerRadius,
       normalShadowColor: '00000000',
       shadowRadius: 7,
