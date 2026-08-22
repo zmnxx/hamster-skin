@@ -15,6 +15,62 @@ local styleFactories = import 'styleFactories.libsonnet';
 // colorButtonBackgroundStyle / alphabeticHintBackgroundStyle / longPressSymbols*。
 // 键帽为半透明设计，靠底下的键盘背景透出层次，因此颜色都带 alpha。
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Write_2024 键帽配色
+//
+// 逐像素量自 Write_2024 皮肤 dark/resources/anjian26.png、anjian9.png
+// （及其 *ax 按下态），换算基准 1080px / 390pt = 2.77x。
+//
+// 与空山素影键帽的三处本质差异：
+//   1) **纯色，不是渐变**。竖向取色上中下同值（字母键通体 #3A3A3A），
+//      只在最底部有一条浅一档的边缘。空山素影是 #414144→#212122 渐变。
+//   2) **无描边**。切片最外圈与内部同色，borderSize 必须归 0。
+//      空山素影靠 #5D5D60 描边做玻璃质感。
+//   3) **底边缘是「浅一档的同色系」而非黑色**（#3A3A3A 的边缘是 #282828，
+//      高 9px≈3.2pt）。黑色那层是切片外的投影，由 shadow* 负责。
+//
+// 圆角实测：26 键 25px = 9.03pt；九键 / 数字键盘 36px = 13.00pt。
+// ---------------------------------------------------------------------------
+local write2024_dark = {
+  // 字母键 / 数字键：通体 #3A3A3A，按下抬到 #4D4D4D
+  '字母键背景颜色-普通': '#3A3A3A',
+  '字母键背景颜色-高亮': '#4D4D4D',
+
+  // 功能键：比字母键暗一档
+  '功能键背景颜色-普通': '#262626',
+  '功能键背景颜色-高亮': '#3B3B3B',
+
+  // 回车键。2024 没有强调色回车，与功能键同色
+  // （Custom 里 enter_key_accent 也已关闭，这里保持一致）
+  'enter键背景(蓝色)': '#262626',
+
+  // 无描边：透明色 + keycap_config.borderSize = 0 双保险
+  '键帽描边颜色-普通': '#00000000',
+  '键帽描边颜色-高亮': '#00000000',
+
+  // 底边缘 = 主体色压暗一档，不是黑色
+  '键帽底边缘颜色-普通': '#282828',
+  '键帽底边缘颜色-高亮': '#333333',
+
+  // 长按气泡：跟键帽同料
+  '气泡背景颜色': '#3A3A3A',
+  '气泡描边颜色': '#00000000',
+  '气泡阴影颜色': '#000000',
+
+  // 长按符号面板
+  '长按面板背景颜色': '#262626',
+  '长按面板描边颜色': '#00000000',
+  '长按面板阴影颜色': '#000000',
+  '长按面板选中颜色': '#4D4D4D',
+};
+
+// 用户明确不要 2024 的浅色模式；配合 Custom 的 force_single_theme: 'dark'，
+// light 主题也走同一套值（两套 yaml 内容一致），任何 App 里都是深色键帽。
+local write2024 = {
+  light: write2024_dark,
+  dark: write2024_dark,
+};
+
 local kongshan = {
   light: {
     // 字母键 / 数字键：接近纯白，上浓下淡
@@ -127,8 +183,16 @@ local defaultConfig = {
   apply_to_long_press_panel: true,
 };
 
+// 'kongshan' 与 'write2024' 都走同一套 geometry 键帽实现，只是配色不同。
+// 'default' 回退到万象原版单色键帽。
 local isEnabled(Settings) =
-  std.objectHas(Settings, 'keycap_style') && Settings.keycap_style == 'kongshan';
+  std.objectHas(Settings, 'keycap_style')
+  && (Settings.keycap_style == 'kongshan' || Settings.keycap_style == 'write2024');
+
+// 按 keycap_style 选配色表
+local palette(Settings) =
+  if std.objectHas(Settings, 'keycap_style') && Settings.keycap_style == 'write2024'
+  then write2024 else kongshan;
 
 // 强制单一配色时，键帽也要跟着走同一套颜色，否则被强制浅色的 App 里
 // 键帽会变白、而其他区域仍是暗色。
@@ -212,7 +276,7 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
         highlightLowerEdgeColor: color[theme]['底边缘颜色-高亮'],
       })
     else
-      local c = kongshan[theme];
+      local c = palette(Settings)[theme];
       local k = cfg(Settings);
       local normal = if std.objectHas(c, normalKey) then c[normalKey] else color[theme][normalKey];
       // 回车键按下时保持强调色，不要退回功能键的灰白
@@ -250,7 +314,7 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
         shadowOffset: { x: 0, y: 5 },
       })
     else
-      local c = kongshan[theme];
+      local c = palette(Settings)[theme];
       local k = cfg(Settings);
       {
         buttonStyleType: 'geometry',
@@ -275,7 +339,7 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
     local k = cfg(Settings);
     if !isEnabled(Settings) || !k.apply_to_long_press_panel then fallback
     else
-      local c = kongshan[theme];
+      local c = palette(Settings)[theme];
       {
         buttonStyleType: 'geometry',
         normalColor: c['长按面板背景颜色'],
@@ -299,7 +363,7 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
     local k = cfg(Settings);
     if !isEnabled(Settings) || !k.apply_to_long_press_panel then fallback
     else
-      local c = kongshan[theme];
+      local c = palette(Settings)[theme];
       {
         buttonStyleType: 'geometry',
         normalColor: c['长按面板选中颜色'],
