@@ -17,7 +17,7 @@
 
 local config = {
   author: 'BlackCCCat',
-  name: '元书皮肤',
+  name: '元书输入法-简约',
 
   // 中文主键盘
   pinyin: {
