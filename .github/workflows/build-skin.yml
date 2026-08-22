@@ -1,14 +1,17 @@
 name: build-skin
 
-# 手动触发。改数值用 tools/skin_fastedit.py 直接改成品 yaml 就够了，
-# 只有改结构（增删按键、改布局比例）才需要跑这里的全量编译。
+# 手动触发。任何改动都走这里编译。
+#
+# 不要直接手改 light/ dark/ 下的成品 yaml —— 那样源码与成品会分叉，
+# 下次编译就把手改冲掉，而且已装皮肤同名导入时常常不生效（用户白等一场）。
+# jsonnet/ 是唯一真源，成品 yaml 只是产物。
 on:
   workflow_dispatch:
     inputs:
       skin_name:
-        description: '皮肤名（决定 .cskin 内的目录名与文件名）'
+        description: '皮肤名（决定 .cskin 内的目录名与文件名，须与 main.jsonnet 的 name 一致）'
         required: false
-        default: '万象键盘 空山键帽'
+        default: '元书皮肤'
       make_release:
         description: '同时发一个 Release（tag 用 version.txt 的内容）'
         type: boolean

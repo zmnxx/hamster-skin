@@ -41,6 +41,14 @@ local toolbarMenu = toolbarShared.getIpadToolbarMenu(toolbarConfig);
       horizontalCandidatesStyle+: {
         insets+: { left: 3, right: 10 },
       },
+      // iPad 工具栏更高（默认 57 而非 42），胶囊半径必须跟着走，
+      // 否则沿用手机的 21 会得到一个圆角矩形而不是两端半圆。
+      toolbarBackgroundStyle+: {
+        cornerRadius:
+          (if std.objectHas(ipadToolbarConfig, 'toolbar_height')
+           then ipadToolbarConfig.toolbar_height
+           else Settings.toolbar_config.toolbar_height) / 2,
+      },
       toolbarLayout: ipadRendererConfig.toolbarLayout,
 
       toolbarSlideButtonsIpadCenter: ipadRendererConfig.toolbarSlideButtonsIpadCenter,

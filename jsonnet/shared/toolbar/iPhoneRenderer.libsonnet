@@ -3,7 +3,7 @@ local Settings = import '../../Custom.libsonnet';
 local toolbarShared = import 'config.libsonnet';
 
 {
-  build(toolbarMode, segmentedResolved, carouselResolved, toolbarButtonRegistry)::
+  build(toolbarMode, segmentedResolved, carouselResolved, fixedResolved, toolbarButtonRegistry)::
     local makeToolbarCell(id) = toolbarShared.makeToolbarCell(toolbarButtonRegistry, id);
     local makeSlideItem(id, index) = toolbarShared.makeSlideItem(toolbarButtonRegistry, id, index);
     {
@@ -11,7 +11,14 @@ local toolbarShared = import 'config.libsonnet';
         {
           HStack: {
             subviews:
-              if toolbarMode == 'carousel' then
+              // fixed：全部按钮等宽平铺，不生成任何 horizontalSymbols 滑动区。
+              // HStack 内不写 size 的 Cell 会均分宽度，所以这里只列 Cell 即可。
+              if toolbarMode == 'fixed' then
+                [
+                  makeToolbarCell(id)
+                  for id in fixedResolved.buttons
+                ]
+              else if toolbarMode == 'carousel' then
                 [
                   makeToolbarCell(carouselResolved.left_fixed),
                   { Cell: 'toolbarSlideButtonsCenter' },

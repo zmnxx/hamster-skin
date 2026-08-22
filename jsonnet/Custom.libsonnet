@@ -239,7 +239,12 @@
     //
     // carousel:
     // 固定首按钮 + 中间整体横向滑动 + 固定尾按钮
-    mode: 'segmented',
+    //
+    // fixed:
+    // 全部按钮等宽平铺，没有滑动区，fixed 数组里的按钮全部常驻可见。
+    // 适合「所有功能一眼看全、不想滑动」的场景；按钮数建议 ≤ 8，
+    // 再多每个键会窄到放不下两个汉字。
+    mode: 'fixed',
 
     // 可用按钮 ID:
     // script: 脚本
@@ -269,6 +274,22 @@
     // cut: 剪切
     // copy: 复制
     // paste: 粘贴
+
+    fixed: {
+      // mode = 'fixed' 时生效：数组里的按钮全部常驻、等宽平铺，没有滑动区。
+      // 顺序即显示顺序。8 个键在 iPhone 竖屏下每键约 46pt，放两个汉字正好。
+      // 排列: 菜单、搜索、网址、商店、常用、剪贴、脚本、收起
+      buttons: [
+        'menu_or_panel',
+        'google',
+        'safari',
+        'apple',
+        'note',
+        'clipboard',
+        'script',
+        'hide',
+      ],
+    },
 
     segmented: {
       // 第一种布局

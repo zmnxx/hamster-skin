@@ -25,7 +25,9 @@ local customFontSize = if std.objectHas(Settings, 'font_size_config') then Setti
   '功能按键sf符号大小': 17,
 
   'toolbar按键前景sf符号大小': 18,
-  'toolbar按键前景文字大小': 13,
+  // 工具栏文字。原为 13：那时 8 个按钮里有 4 个挤在滑动区，格子窄。
+  // 改成 fixed 全平铺后每键约 46pt（iPhone 竖屏），15 更接近 2024 皮肤的观感。
+  'toolbar按键前景文字大小': 15,
 
   // 数字键盘
   'collection前景字体大小': 18,

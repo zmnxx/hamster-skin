@@ -17,7 +17,7 @@
 
 local config = {
   author: 'BlackCCCat',
-  name: '万象键盘 空山键帽',
+  name: '元书皮肤',
 
   // 中文主键盘
   pinyin: {

@@ -11,7 +11,7 @@ local toolbarRegistryLib = import 'registry.libsonnet';
 local toolbarConfig = toolbarShared.getToolbarConfig(Settings);
 local toolbarMenu = toolbarShared.getToolbarMenu(toolbarConfig);
 local toolbarMode =
-  if std.objectHas(toolbarConfig, 'mode') && std.member(['segmented', 'carousel'], toolbarConfig.mode) then
+  if std.objectHas(toolbarConfig, 'mode') && std.member(['segmented', 'carousel', 'fixed'], toolbarConfig.mode) then
     toolbarConfig.mode
   else
     'segmented';
@@ -20,6 +20,8 @@ local segmentedConfig =
   if std.objectHas(toolbarConfig, 'segmented') then toolbarConfig.segmented else {};
 local carouselConfig =
   if std.objectHas(toolbarConfig, 'carousel') then toolbarConfig.carousel else {};
+local fixedConfig =
+  if std.objectHas(toolbarConfig, 'fixed') then toolbarConfig.fixed else {};
 
 local getToolBar(theme, overrides={}) =
   local switchKeyboardType = toolbarShared.getSwitchKeyboardType(overrides);
@@ -71,8 +73,18 @@ local getToolBar(theme, overrides={}) =
       'hide'
     ),
   };
+  // 将 Custom 中的全固定布局解析为最终可用的按钮 ID。
+  // 无滑动区，按钮等宽平铺；数组顺序即显示顺序。
+  local fixedResolved = {
+    buttons: toolbarShared.getToolbarIds(
+      toolbarButtonRegistry,
+      if std.objectHas(fixedConfig, 'buttons') then fixedConfig.buttons else [],
+      ['menu_or_panel', 'google', 'safari', 'apple', 'note', 'clipboard', 'script', 'hide'],
+      true
+    ),
+  };
   // 渲染器只生成布局和滑动数据源，固定按钮样式与 action 在此补齐。
-  local iPhoneRendererConfig = iPhoneRenderer.build(toolbarMode, segmentedResolved, carouselResolved, toolbarButtonRegistry);
+  local iPhoneRendererConfig = iPhoneRenderer.build(toolbarMode, segmentedResolved, carouselResolved, fixedResolved, toolbarButtonRegistry);
   local makeToolbarSystemImageForegroundStyle(systemImageName, extra={}) = {
     buttonStyleType: 'systemImage',
     systemImageName: systemImageName,
@@ -126,7 +138,7 @@ local getToolBar(theme, overrides={}) =
     // 现在显式指定背景与文字色，跟随皮肤配色而非系统。
     preeditStyle: {
       insets: { left: 15, top: 2 },
-      backgroundStyle: 'toolbarBackgroundStyle',
+      backgroundStyle: 'toolbarFlatBackgroundStyle',
       foregroundStyle: 'preeditForegroundStyle',
     },
     preeditForegroundStyle: {
@@ -181,7 +193,7 @@ local getToolBar(theme, overrides={}) =
       // （非必须，默认值为 7）用于定义显示区域内最大候选文字数量
       maxColumns: 6,
       insets: { left: 3, right: 3 },
-      backgroundStyle: 'toolbarBackgroundStyle',
+      backgroundStyle: 'toolbarClearBackgroundStyle',
       // 用于定义候选文字显示样式
       candidateStyle: 'horizontalCandidateStyle',
     },
@@ -194,7 +206,7 @@ local getToolBar(theme, overrides={}) =
     // 纵向候选文字栏调式
     verticalCandidatesStyle: {
       insets: { left: 3, bottom: 1, top: 3 },
-      backgroundStyle: 'toolbarBackgroundStyle',
+      backgroundStyle: 'toolbarFlatBackgroundStyle',
     },
     verticalCandidatesLayout: [
       {
@@ -231,7 +243,7 @@ local getToolBar(theme, overrides={}) =
       maxColumns: 5,
       // （非必须）显示区域内分割线颜色
       // separatorColor: '#33338888',
-      backgroundStyle: 'toolbarBackgroundStyle',
+      backgroundStyle: 'toolbarFlatBackgroundStyle',
       // 候选文字样式
       candidateStyle: 'verticalCandidateStyle',
     },
@@ -245,15 +257,32 @@ local getToolBar(theme, overrides={}) =
     // 于是符号键盘纵向候选栏的删除键会没有图标。
     verticalCandidateBackspaceButton: makeSystemButtonStyle('verticalCandidateBackspaceButtonForegroundStyle', 'backspace'),
 
-    toolbarBackgroundStyle: styleFactories.makeGeometryStyle(color[theme]['toolbar背景颜色']),
+    // 工具栏 / 候选栏背景。
+    //
+    // 用「键盘背景颜色」而不是「toolbar背景颜色」：原本工具栏是 2B2B2B 灰、
+    // 按键区是 0A0A0A 近黑，两者拼在一起时工具栏明显发灰、像另一块面板。
+    // 直接引用键盘底色，工具栏与下方键盘就是同一块表面。
+    // cornerRadius 取工具栏高度的一半 → 两端半圆的胶囊形。
+    // 用 geometry 而非位图：换 toolbar_height 时圆角自动跟着变，且无锯齿。
+    toolbarBackgroundStyle: styleFactories.makeGeometryStyle(
+      color[theme]['键盘背景颜色'],
+      { cornerRadius: Settings.toolbar_config.toolbar_height / 2 }
+    ),
+    // 预编辑区与纵向候选栏跟工具栏不同高（preedit 15pt、纵向候选占满键盘），
+    // 套上面那个胶囊半径会变成怪异的圆头条，所以它们用同色但不带圆角的平面。
+    toolbarFlatBackgroundStyle: styleFactories.makeGeometryStyle(color[theme]['键盘背景颜色']),
+    // 横向候选栏与工具栏同高，容器沿用胶囊；里层的 collection 必须透明，
+    // 否则会在胶囊上再压一个直角矩形，把两端的圆角切掉。
+    toolbarClearBackgroundStyle: styleFactories.makeGeometryStyle('00000000'),
     // 工具栏按钮背景。原本 normalColor/highlightColor 都是 0（全透明），
-    // 按下时没有任何视觉反馈；现在常态仍透明、按下给一层淡色底，
-    // 圆角与内缩取自工具栏尺度（按钮比键帽小，用 8pt）。
+    // 按下时没有任何视觉反馈；现在常态仍透明、按下给一层淡色底。
+    // 圆角 15 与工具栏胶囊语言一致（按钮内缩上下各 4pt，可用高 34pt，
+    // 15 已接近半圆，视觉上是个小胶囊而不是圆角方块）。
     toolbarButtonBackgroundStyle: {
       buttonStyleType: 'geometry',
       normalColor: color[theme]['toolbar按键背景颜色-普通'],
       highlightColor: color[theme]['toolbar按键背景颜色-高亮'],
-      cornerRadius: 8,
+      cornerRadius: 15,
       insets: { top: 4, left: 3, right: 3, bottom: 4 },
     },
     // 切换键盘
