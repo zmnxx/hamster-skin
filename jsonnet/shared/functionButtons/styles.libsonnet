@@ -34,7 +34,9 @@ local styleFactories = import '../styles/styleFactories.libsonnet';
     cut: '2',
     copy: '3',
     paste: '4',
-    tail: '⋯',
+    // 打字时 tail 变为候选栏展开/收起开关，故显示「候选」。
+    // 非打字状态仍是「行尾」，见 funcKeyTextMap。
+    tail: '候选',
     right: '⇢',
   },
 

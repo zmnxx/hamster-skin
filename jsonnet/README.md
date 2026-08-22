@@ -204,6 +204,9 @@ WanxiangSkin/
   `left` 左移、`head` 行首、`select` 全选、`cut` 剪切、`copy` 复制、
   `paste` 粘贴、`tail` 行尾、`right` 右移
 
+  其中 `tail` 是双态键：不打字时是「行尾」（`#行尾`），打字时切换为
+  「候选」（`#candidatesBarStateToggle`，展开/收起候选栏）。
+
 ### 工具栏
 
 - `toolbar_config.toolbar_menu` — 用 App 的键盘菜单还是皮肤内置浮动面板

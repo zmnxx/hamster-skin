@@ -70,7 +70,9 @@
     cut: { action: { character: '8' } },
     copy: { action: { character: '9' } },
     paste: { action: { character: '0' } },
-    tail: { action: { sendKeys: 'backslash' } },
+    // 打字时 tail 不再发 backslash，改为展开/收起候选栏。
+    // 非打字状态的行尾动作在 actionMap 里，保持不变。
+    tail: { action: { shortcut: '#candidatesBarStateToggle' } },
     right: { action: { sendKeys: 'Down' } },
   },
 
@@ -81,7 +83,8 @@
     cut: { action: { sendKeys: 'control+2' } },
     copy: { action: { sendKeys: 'control+3' } },
     paste: { action: { sendKeys: 'control+4' } },
-    tail: { action: { character: '\\' } },
+    // 键面已是「候选」，上划再插反斜杠会误输入，清空。
+    tail: {},
     right: { action: { character: ']' } },
   },
 
@@ -92,7 +95,8 @@
     cut: { action: { sendKeys: 'control+2' } },
     copy: { action: { sendKeys: 'control+3' } },
     paste: { action: { sendKeys: 'control+4' } },
-    tail: { action: { character: '\\' } },
+    // 同上划，避免在「候选」键上误输反斜杠。
+    tail: {},
     right: { action: { sendKeys: 'Right' } },
   },
 
@@ -127,7 +131,9 @@
         {};
     local disabledKeys =
       if keyboardType == 't9' then
-        ['tail']
+        // tail 原先在九键打字态被禁用（当时它的通知动作是 backslash，九键下无意义）。
+        // 现在改成候选栏展开/收起，九键打字时同样需要，故不再禁用。
+        []
       else if std.member(['alphabetic', 'numeric'], keyboardType) then
         ['select', 'cut', 'copy', 'paste', 'tail']
       else
