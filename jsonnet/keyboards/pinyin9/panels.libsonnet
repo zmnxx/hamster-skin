@@ -23,8 +23,12 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       separatorLineColor: color[theme]['符号区分隔线颜色'],
     },
     collectionBackgroundStyle: makePanelGeometryStyle(color[theme]['符号键盘左侧collection背景颜色'], {
-      insets: if orientation == 'portrait' then context.Settings.button_insets.portrait else context.Settings.button_insets.landscape,
-      cornerRadius: context.Settings.cornerRadius,
+      // 间距与圆角跟键帽走，而不是用全局 cornerRadius(8)。
+      // 这块符号栏与右侧键帽并排，键帽圆角 14 而它 8，差一档就显得
+      // 像另一套控件贴上来 —— 用户反馈「左边符号栏颜色不对、整体有点怪」
+      // 其中一半是这个圆角差造成的。
+      insets: keycap.panelInsets(context.Settings, orientation),
+      cornerRadius: keycap.panelRadius(context.Settings),
       normalLowerEdgeColor: color[theme]['符号键盘左侧collection背景下边缘颜色'],
     }),
     collectionCellStyle: {

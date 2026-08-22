@@ -6,7 +6,6 @@ local customFontSize = if std.objectHas(Settings, 'font_size_config') then Setti
   '未展开候选字体选中字体大小': 20,
   '未展开comment字体大小': 10,
   '展开候选字体选中字体大小': 20,
-  '展开comment字体大小': 10,
   'preedit区字体大小': 13,
 
   '上划文字大小': 9,
@@ -21,7 +20,6 @@ local customFontSize = if std.objectHas(Settings, 'font_size_config') then Setti
 
   '按键前景文字大小': 20,
   '26键字母前景文字大小': if std.objectHas(customFontSize, 'pinyin_26_letter_font_size') then customFontSize.pinyin_26_letter_font_size else 20,
-  '按键前景sf符号大小': 15,
   '功能按键sf符号大小': 17,
 
   'toolbar按键前景sf符号大小': 18,
@@ -35,8 +33,6 @@ local customFontSize = if std.objectHas(Settings, 'font_size_config') then Setti
 
   // 中文九键
   '中文九键字符键前景文字大小': if std.objectHas(customFontSize, 'pinyin_9_letter_font_size') then customFontSize.pinyin_9_letter_font_size else 15,
-  '中文九键字根前景文字大小': 10,
-  '中文九键划动文字大小': 10,
 
   // 符号键盘
   '符号键盘左侧collection前景字体大小': 13,

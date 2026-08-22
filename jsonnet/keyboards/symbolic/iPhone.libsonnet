@@ -104,7 +104,8 @@ local keyboard(theme, orientation) =
       separatorLineColor: color[theme]['符号区分隔线颜色'],
     },
     categoryCollectionBackgroundStyle: styleFactories.makeGeometryStyle(color[theme]['符号键盘左侧collection背景颜色'], {
-      cornerRadius: Settings.cornerRadius,
+      // 与九宫格 / 数字键盘的符号栏同处理：圆角跟键帽走
+      cornerRadius: keycap.panelRadius(Settings),
     }),
     categoryCollectionCellStyle: {
       foregroundStyle: 'categoryCollectionCellForegroundStyle',
@@ -128,7 +129,7 @@ local keyboard(theme, orientation) =
       maximumRow: 5,
     },
     descriptionCollectionBackgroundStyle: styleFactories.makeGeometryStyle(color[theme]['符号键盘右侧collection背景颜色'], {
-      cornerRadius: Settings.cornerRadius,
+      cornerRadius: keycap.panelRadius(Settings),
     }),
     descriptionCollectionCellStyle: {
       backgroundStyle: 'descriptionCollectionCellBackgroundStyle',

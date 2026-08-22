@@ -1,6 +1,7 @@
 // 定义数字 9 键使用的面板型组件。
 local color = import '../../shared/styles/color.libsonnet';
 local fontSize = import '../../shared/styles/fontSize.libsonnet';
+local keycap = import '../../shared/styles/keycap.libsonnet';
 local styleFactories = import '../../shared/styles/styleFactories.libsonnet';
 
 local numericSymbols = [
@@ -58,8 +59,9 @@ local numericSymbols = [
       separatorLineColor: color[theme]['符号区分隔线颜色'],
     },
     collectionBackgroundStyle: makePanelGeometryStyle(color[theme]['符号键盘左侧collection背景颜色'], {
-      insets: if orientation == 'portrait' then context.Settings.button_insets.portrait else context.Settings.button_insets.landscape,
-      cornerRadius: context.Settings.cornerRadius,
+      // 与九宫格符号栏同处理：间距圆角跟键帽走，避免和并排的键帽差一档
+      insets: keycap.panelInsets(context.Settings, orientation),
+      cornerRadius: keycap.panelRadius(context.Settings),
       normalLowerEdgeColor: color[theme]['符号键盘左侧collection背景下边缘颜色'],
     }),
     collectionCellStyle: {
