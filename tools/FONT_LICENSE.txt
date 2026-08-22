@@ -1,0 +1,12 @@
+本目录中的字体由 Noto Sans SC 派生而来，派生方式为：
+  - 从可变字体抽取指定 wght 静态实例
+  - 子集化（仅保留键盘工具栏标签所需汉字）
+  - 字身横向压缩（长体化）
+
+原字体 Noto Sans SC 版权归 Google 所有，依据
+SIL Open Font License, Version 1.1 授权。
+
+依 OFL-1.1 第 3 条「保留名称」规定，本派生字体已重命名字族，
+不再使用 "Noto" 等保留名称。
+
+OFL-1.1 全文：https://scripts.sil.org/OFL
