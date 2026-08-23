@@ -22,15 +22,10 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       // 在被强制浅色的 App 里几乎看不见，这里显式指定。
       separatorLineColor: color[theme]['符号区分隔线颜色'],
     },
-    collectionBackgroundStyle: makePanelGeometryStyle(color[theme]['符号键盘左侧collection背景颜色'], {
-      // 间距与圆角跟键帽走，而不是用全局 cornerRadius(8)。
-      // 这块符号栏与右侧键帽并排，键帽圆角 14 而它 8，差一档就显得
-      // 像另一套控件贴上来 —— 用户反馈「左边符号栏颜色不对、整体有点怪」
-      // 其中一半是这个圆角差造成的。
-      insets: keycap.panelInsets(context.Settings, orientation),
-      cornerRadius: keycap.panelRadius(context.Settings),
-      normalLowerEdgeColor: color[theme]['符号键盘左侧collection背景下边缘颜色'],
-    }),
+    collectionBackgroundStyle: keycap.panelBackground(
+      theme, orientation, context.Settings, color,
+      '符号键盘左侧collection背景颜色', '符号键盘左侧collection背景下边缘颜色'
+    ),
     collectionCellStyle: {
       backgroundStyle: 'collectionCellBackgroundStyle',
       foregroundStyle: 'collectionCellForegroundStyle',
@@ -46,7 +41,11 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       // 不写 highlightColor 时按下瞬间文字会退回系统 label 色（浅色下变黑）
       highlightColor: color[theme]['collection前景颜色'],
       fontSize: fontSize['collection前景字体大小'],
-      fontWeight: 0,
+      // fontWeight 是枚举（ultraLight…black），原本写的 0 不是合法取值。
+      // 非法值会让元书跳过这个 style 节点里的部分键，符号列文字于是回落到
+      // 系统 label 色 —— 深色 App 里纯白 255、被强制浅色的 App 里近黑，
+      // 而皮肤声明的 F2F2F2(242) 从未生效（旁边键帽的 242 是正常渲染的）。
+      fontWeight: 'regular',
     },
     alphabeticHintSymbolsBackgroundStyle: keycap.longPressPanelBackground(theme, context.Settings, hintSymbolsStyles['长按背景样式']),
     alphabeticHintSymbolsSelectedStyle: keycap.longPressPanelSelected(theme, context.Settings, color, hintSymbolsStyles['长按选中背景样式']),

@@ -1,4 +1,7 @@
 .fastedit_cache.json
 .fastedit_stamps.json
 *.cskin
+.env
+*.pem
+*.key
 __pycache__/

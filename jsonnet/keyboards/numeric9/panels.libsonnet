@@ -58,12 +58,10 @@ local numericSymbols = [
       type: 'categorySymbols',
       separatorLineColor: color[theme]['符号区分隔线颜色'],
     },
-    collectionBackgroundStyle: makePanelGeometryStyle(color[theme]['符号键盘左侧collection背景颜色'], {
-      // 与九宫格符号栏同处理：间距圆角跟键帽走，避免和并排的键帽差一档
-      insets: keycap.panelInsets(context.Settings, orientation),
-      cornerRadius: keycap.panelRadius(context.Settings),
-      normalLowerEdgeColor: color[theme]['符号键盘左侧collection背景下边缘颜色'],
-    }),
+    collectionBackgroundStyle: keycap.panelBackground(
+      theme, orientation, context.Settings, color,
+      '符号键盘左侧collection背景颜色', '符号键盘左侧collection背景下边缘颜色'
+    ),
     collectionCellStyle: {
       backgroundStyle: 'collectionCellBackgroundStyle',
       foregroundStyle: 'collectionCellForegroundStyle',
@@ -79,7 +77,9 @@ local numericSymbols = [
       // 不写 highlightColor 时按下瞬间文字会退回系统 label 色（浅色下变黑）
       highlightColor: color[theme]['collection前景颜色'],
       fontSize: fontSize['collection前景字体大小'],
-      fontWeight: 0,
+      // 同 pinyin9/panels.libsonnet：0 不是 fontWeight 的合法枚举值，
+      // 会导致整个节点的颜色声明失效、文字回落系统 label 色。
+      fontWeight: 'regular',
     },
     symbols: numericSymbols,
     landscapeSymbols: [

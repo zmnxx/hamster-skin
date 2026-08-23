@@ -145,19 +145,17 @@
   cornerRadius: 8,
 
   // 键帽风格
-  // 'default':   万象原版（单色键帽、无描边、无渐变）
-  // 'kongshan':  移植「空山素影」键帽（上下渐变 + 半透明描边 + 底部亮边）
-  // 'write2024': 移植「Write_2024」键帽（纯色 + 无描边 + 同色系底边缘，
-  //              数值逐像素量自其 anjian26.png / anjian9.png）
+  // 'default':  万象原版（单色键帽、无描边、无渐变）
+  // 'kongshan': 移植「空山素影」键帽（上下渐变 + 半透明描边 + 底部亮边 + 光晕/涟漪动效）
   // 只影响按键本身，工具栏与功能行始终保持万象原样
-  keycap_style: 'write2024',
+  keycap_style: 'kongshan',
 
-  // 键帽细节参数，在 keycap_style 为 'kongshan' / 'write2024' 时生效
+  // 键帽细节参数，仅在 keycap_style == 'kongshan' 时生效
   keycap_config: {
-    // 键帽圆角。Write_2024 实测：九键 / 数字键盘 13pt
-    cornerRadius: 13,
-    // 26 键专用圆角。Write_2024 实测 9pt（键位窄，圆角跟着收）
-    cornerRadius26: 9,
+    // 键帽圆角
+    cornerRadius: 14,
+    // 26 键专用圆角。26 键键位窄（约 34pt），圆角 14 会接近药丸形，略降更方正
+    cornerRadius26: 11,
 
     // 键帽间距。相邻两键的间隙 = 左键 right + 右键 left
     // 九键 / 数字键盘 / 符号键盘：单元格约 76pt，左右各 4 → 间隙 8pt，占 10%
@@ -171,18 +169,17 @@
       landscape: { top: 2.5, left: 1.5, right: 1.5, bottom: 2.5 },
     },
 
-    // 键帽描边宽度。Write_2024 无描边（切片最外圈与内部同色），归 0
-    borderSize: 0,
+    // 键帽描边宽度
+    borderSize: 1,
 
-    // 键帽投影。Write_2024 的立体感来自底边缘那条同色系深边，
-    // 外投影很轻，仅用于把键帽从背景里托起来
-    shadowOpacity: 0.10,
-    shadowRadius: 3,
+    // 键帽投影
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
 
-    // 长按气泡圆角与描边。气泡跟键帽同料，描边也归 0
-    hintCornerRadius: 12,
-    hintBorderSize: 0,
-    hintShadowRadius: 4,
+    // 长按气泡圆角与描边
+    hintCornerRadius: 10,
+    hintBorderSize: 0.5,
+    hintShadowRadius: 3,
 
     // 按下动效
     // scale:  按下缩放（0 表示关闭）
