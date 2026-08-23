@@ -1,17 +1,18 @@
 name: build-skin
 
-# 手动触发。任何改动都走这里编译。
+# 元书皮肤云端编译。手动触发。
 #
-# 不要直接手改 light/ dark/ 下的成品 yaml —— 那样源码与成品会分叉，
-# 下次编译就把手改冲掉，而且已装皮肤同名导入时常常不生效（用户白等一场）。
-# jsonnet/ 是唯一真源，成品 yaml 只是产物。
+# 本仓库是纯中转站：源码由 repo_reset.py 每次任务临时推上来，编译完取回产物后
+# 立即清空。所以这里不假设任何具体皮肤 —— 皮肤名完全由 skin_name 输入决定。
+#
+# jsonnet/ 是唯一真源，不要手改编译出来的 light/ dark/ 下的 yaml：
+# 那样源码与产物会分叉，下次编译就把手改冲掉。
 on:
   workflow_dispatch:
     inputs:
       skin_name:
         description: '皮肤名（决定 .cskin 内的目录名与文件名，须与 main.jsonnet 的 name 一致）'
-        required: false
-        default: '元书皮肤-简约4'
+        required: true
       make_release:
         description: '同时发一个 Release（tag 用 version.txt 的内容）'
         type: boolean
@@ -53,7 +54,7 @@ jobs:
           find "$OUT" -name '*.yaml' | sort | sed "s|$OUT/||"
           echo "共 $(find "$OUT" -name '*.yaml' | wc -l) 个文件"
 
-      - name: 校验 yaml 可解析 + 样式引用完整性
+      - name: 校验产物（可解析 / light-dark 成对 / 引用完整性）
         run: |
           set -euo pipefail
           python3 - "$RUNNER_TEMP/out" <<'PY'
@@ -61,11 +62,24 @@ jobs:
           # 用 libyaml 的 C 解析器，纯 Python 版慢好几倍
           L = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
           out = sys.argv[1]
-          STYLE_KEYS = ('backgroundStyle', 'foregroundStyle', 'hintStyle', 'cellStyle',
-                        'candidateStyle', 'hintSymbolsStyle', 'selectedBackgroundStyle')
-          total_dangling = 0
+          STYLE_KEYS = ('backgroundStyle', 'foregroundStyle', 'hintStyle',
+                        'cellStyle', 'candidateStyle', 'hintSymbolsStyle',
+                        'hintSymbolsGridStyle', 'selectedBackgroundStyle',
+                        'uppercasedStateForegroundStyle',
+                        'capsLockedStateForegroundStyle')
+          fatal = []
+
+          # 1) config.yaml 必须存在且声明了 pinyin
+          cfg_path = os.path.join(out, 'config.yaml')
+          assert os.path.exists(cfg_path), '没有产出 config.yaml'
+          cfg = yaml.load(open(cfg_path), Loader=L) or {}
+          if 'pinyin' not in cfg:
+              fatal.append('config.yaml 没有 pinyin 键盘（官方要求必须提供）')
+
+          # 2) 每个 yaml 可解析
           files = sorted(glob.glob(os.path.join(out, '*', '*.yaml')))
-          assert files, '没有产出任何 yaml'
+          assert files, '没有产出任何键盘 yaml'
+          total_dangling = 0
           for f in files:
               doc = yaml.load(open(f), Loader=L)
               assert isinstance(doc, dict) and doc, f'{f} 解析结果为空'
@@ -73,17 +87,58 @@ jobs:
               def walk(n):
                   if isinstance(n, dict):
                       for k, v in n.items():
-                          if k in STYLE_KEYS and isinstance(v, str) and v not in doc:
-                              missing.add(v)
+                          if k in STYLE_KEYS:
+                              names = ([v] if isinstance(v, str)
+                                       else [x for x in v if isinstance(x, str)]
+                                       if isinstance(v, list) else [])
+                              for name in names:
+                                  if name not in doc:
+                                      missing.add(name)
                           walk(v)
                   elif isinstance(n, list):
                       for v in n:
                           walk(v)
               walk(doc)
               total_dangling += len(missing)
+
+          # 3) light / dark 必须成对 —— 缺一边会让该键盘在对应外观下白屏
+          def names(side):
+              d = os.path.join(out, side)
+              return {os.path.basename(p)[:-5]
+                      for p in glob.glob(os.path.join(d, '*.yaml'))}
+          ls, ds = names('light'), names('dark')
+          for n in sorted(ls - ds):
+              fatal.append(f'dark/ 缺 {n}.yaml（light 有）→ 深色下白屏')
+          for n in sorted(ds - ls):
+              fatal.append(f'light/ 缺 {n}.yaml（dark 有）→ 浅色下白屏')
+
+          # 4) config 声明的文件都要真实存在
+          for kb, v in cfg.items():
+              if not isinstance(v, dict):
+                  continue
+              for dev, orients in v.items():
+                  if not isinstance(orients, dict):
+                      continue
+                  for orient, fname in orients.items():
+                      if not isinstance(fname, str):
+                          continue
+                      for side in ('light', 'dark'):
+                          if not os.path.exists(
+                                  os.path.join(out, side, fname + '.yaml')):
+                              fatal.append(
+                                  f'config 声明 {kb}.{dev}.{orient}={fname}，'
+                                  f'但 {side}/{fname}.yaml 不存在 → 白屏')
+
           print(f'✓ {len(files)} 个 yaml 全部可解析')
-          # 万象基线本身就带几百处悬空引用（历史问题），所以只报数不失败
-          print(f'  悬空样式引用 {total_dangling} 处（基线本身就有，看增量即可）')
+          print(f'✓ light {len(ls)} 个 / dark {len(ds)} 个，成对')
+          # 悬空引用多为运行时按需解析的 *HintStyle，静态检查看不懂，
+          # 所以只报数不失败 —— 改动前后比增量，不看绝对值
+          print(f'  悬空样式引用 {total_dangling} 处（比增量，不看绝对值）')
+
+          if fatal:
+              for m in fatal:
+                  print(f'::error::{m}')
+              sys.exit(1)
           PY
 
       - name: 组装皮肤目录并打包 .cskin
@@ -98,13 +153,36 @@ jobs:
           # 编译产物：config.yaml + light/ dark/ 下的键盘 yaml
           cp "$OUT/config.yaml" "$STAGE/"
           cp -r "$OUT/light" "$OUT/dark" "$STAGE/"
-          # 贴图等资源不经过 jsonnet，直接从仓库拷进去
-          mkdir -p "$STAGE/light/resources" "$STAGE/dark/resources"
-          cp -r resources/light/. "$STAGE/light/resources/"
-          cp -r resources/dark/.  "$STAGE/dark/resources/"
-          # 应用内的皮肤预览图 + 说明 + 版本号
-          cp demo.png README.md version.txt "$STAGE/"
-          # jsonnet 源码也一并带上，方便 fork 后自己改
+          # 贴图等资源不经过 jsonnet，直接从仓库拷进去（皮肤可能没有贴图）
+          for side in light dark; do
+            if [ -d "resources/$side" ]; then
+              mkdir -p "$STAGE/$side/resources"
+              cp -r "resources/$side/." "$STAGE/$side/resources/"
+            fi
+          done
+          # 自带字体与按键音（可选）
+          [ -d fonts ] && cp -r fonts "$STAGE/" || true
+          [ -d sound ] && cp -r sound "$STAGE/" || true
+
+          # demo.png 是官方硬性要求
+          if [ ! -f demo.png ]; then
+            echo "::error::缺 demo.png —— 官方要求皮肤包必须提供预览图"
+            exit 1
+          fi
+          cp demo.png "$STAGE/"
+          cp version.txt "$STAGE/"
+
+          # 包内 README 与仓库 README 是两份不同的文件：
+          # 仓库根的 README.md 是本仓库（云端编译中转站）的说明，不能进皮肤包；
+          # 皮肤自带的那份由 repo_reset.py 推成 skin-readme.md，在此改名放进包内。
+          # 官方要求包内 README 只支持纯文字，不支持图片与超链接。
+          if [ -f skin-readme.md ]; then
+            cp skin-readme.md "$STAGE/README.md"
+          fi
+
+          # jsonnet 源码一并带上，方便用户或后续任务继续改
+          # 注意：仓库里不应有任何凭据文件，这里是整目录拷贝，
+          # 确保 jsonnet/ 下没有 .env / *.pem / token 之类
           cp -r jsonnet "$STAGE/"
 
           VER=$(tr -d '[:space:]' < version.txt)

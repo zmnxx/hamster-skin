@@ -1,128 +1,19 @@
-# 元书皮肤-简约4
+# hamster-skin
 
-元书输入法（Hamster3）皮肤源码。`jsonnet/` 是唯一真源，成品 YAML 由
-GitHub Actions 编译产出，**不要手改编译出来的 light/ dark/ 下的 yaml**。
+元书输入法（Hamster3）皮肤的**云端编译中转仓库**。
 
-## 皮肤构成
+## 用途
 
-- 中文九键（T9）为主键盘，另含 26 键中文 / 英文、数字九宫格、符号键盘、浮动面板
-- 键帽移植「空山素影」风格：上下渐变 + 1px 描边 + 底部暗边 + 光晕 / 涟漪逐帧动效
-- 键盘背景完全透明，整片交给 iOS 26 系统背板，避免皮肤自刷底色与背板对不上色
-- 强制单一深色配色（`force_single_theme: 'dark'`），部分 App 强制输入法进浅色时
-  皮肤也保持深色不变白
+iOS 上的 iSH 跑 jsonnet 太慢（单个键盘入口 25~30 秒，全量 10 分钟以上），
+所以皮肤编译放到 GitHub Actions 上跑。
 
-## 目录
+Actions → `build-skin` → Run workflow，填入皮肤名，跑完在运行页底部
+Artifacts 下载 `.cskin`。
 
-```
-jsonnet/                  皮肤源码（唯一真源）
-  Custom.libsonnet        用户可调参数：键帽风格、圆角、间距、字号、工具栏按钮
-  main.jsonnet            编译入口，输出 config.yaml + 18 个键盘 yaml
-  shared/styles/          配色令牌、键帽材质、字号、动效
-  keyboards/              各键盘的布局与按键定义
-resources/{light,dark}/   贴图（动效帧、长按面板底、气泡底），不经过 jsonnet
-tools/                    静态审计脚本（死代码 / 未引用令牌）
-demo.png                  应用内皮肤预览图
-version.txt              版本号，Release 的 tag 取它
-```
+## 本仓库不存放皮肤
 
-## 编译
+源码是每次任务临时推上来的，编译完取回产物后立即删除。
+仓库常态只有这份说明和 `.github/workflows/`。
 
-不在本机编译（iSH 上全量编译是几十分钟级），走 Actions：
-
-1. 仓库 → Actions → build-skin → Run workflow
-2. `skin_name` 保持 `元书皮肤-简约4`（须与 `main.jsonnet` 里的 `name` 一致）
-3. 跑完在运行页底部 Artifacts 下载 `cskin`
-
-整轮约 36 秒，其中 jsonnet 编译约 13 秒。
-
-## 命名约定
-
-**每次新的修改都要重新起名。** 元书按皮肤名管理已装皮肤，同名 `.cskin`
-导入时常常保留旧的那一份（或并存两份而选中的仍是旧的），用户会以为改动没生效。
-改动内容确定后，同时更新：
-
-- `jsonnet/main.jsonnet` 的 `name`
-- `.github/workflows/build-skin.yml` 里 `skin_name` 的 default
-- `version.txt`
-
-## 版本历史
-
-### 元书皮肤-简约4（当前）
-
-**一致性修复**（此前只改了九键，其他键盘漏掉）：
-
-1. **iPad 工具栏胶囊圆角跟随 iPad 自己的高度**。此前 iPad 直接继承 iPhone 算出的
-   `(42-6)/2 = 18`，而 iPad 工具栏高 57pt，圆角偏小、读成圆角矩形而非胶囊。
-   现在 `shared/toolbar/iPad.libsonnet` 覆写为 `(57-6)/2 = 25.5`。
-2. **数字键盘 / 九键剩余的两处非法 `fontWeight: 0` 改为 `regular`**
-   （等号键前景、九键字母标签）。此前只改了两个 panels 里的 collection 前景。
-
-**死代码清理**（用 `audit.py` 做引用计数，逐条人工复核后删除）：
-
-- `keycap.libsonnet`：删 `config()`、`panelInsets()` 两个导出 —— 前者从未被调用，
-  后者的职责已被 `panelBackground()` 内部的 `keycapInsets()` 取代。
-- `color.libsonnet`：删 `resolveTheme()` 导出（`keycap.libsonnet` 有自己的同名
-  private 实现，这个公开版没有任何调用方）。
-- `styleFactories.libsonnet`：删 `genSystemImageStates()`（无调用；
-  它依赖的 `makeSystemImageStyle()` 仍被 8 处使用，保留）。
-- `functionRowPatch.libsonnet`：删 `rawCell()`。
-- `pinyin26/builder.libsonnet`：删 `applySwipeAssistToMap()`（同组的
-  `resolveSwipeAssistMode` / `assistedDirectionEnabled` 都有 `$.` 自引用，保留）。
-- `alphabetic26/systemKeys.libsonnet`：删 `local slBtn`（定义了但
-  `spaceLeftButton` 实际复用的是 `srBtn`，两者字段等价）。
-- `center.libsonnet`：删 `长按气泡文字偏移` / `长按气泡sf符号偏移` 两个令牌 ——
-  唯一的引用在 `hintSymbolsStyles.libsonnet` 里且是注释状态，同时清掉那两行注释
-  与随之无用的 `center` import。
-- 清掉 6 处「声明了但未使用」的 import：`keyboard26Layout`（拼音 26 / 英文 26 各一）、
-  `animation`（iPadBuilder）、`styleFactories`（swipeKeyStyles）、
-  `Settings`（slideButtonStyles / swipeDataEn）、`color`（layoutData）。
-
-审计工具留在 `tools/`：`audit.py`（未引用的令牌 / 导出 / import / local）与
-`audit_tokens.py`（偏移 / 字号 / 动画 / others 里的未引用项）。以后改完可以再跑：
-
-```bash
-python3 tools/audit.py jsonnet
-python3 tools/audit_tokens.py jsonnet
-```
-
-两个脚本只做文本级引用计数，jsonnet 的动态字段名它看不懂，所以输出是
-「值得人工复核的候选清单」而不是结论 —— 删之前必须逐条确认。
-（例：`$.name` / `self.name` 自引用一开始就漏算过，把一批活代码误报成死代码。）
-
-### 元书皮肤-简约3
-
-1. **符号栏回退到 `type: 't9Symbols'`**。简约2 为修黑字把它换成 `symbols`，
-   代价没料到那么大：这一列不只是符号栏，**打字时还兼任拼音选择列**
-   （空山素影源码原话「t9拼音符号列表兼拼音候选」），换成 `symbols` 之后
-   拼音选择消失、符号也被写死。功能回归不可接受，已还原。
-   黑字改走另一条路：额外挂 `candidateStyle` 与节点级 `foregroundStyle` —
-   元书对不认识的 Key 静默忽略，多写无害，哪条生效算哪条。
-2. **去掉符号栏格子间的横线**（`displaySeparatorLine: false`）。
-   `t9Symbols` 该项默认 `true`，必须显式关掉。
-3. **工具栏胶囊改为与字母键完全同料**。此前是一层单独的平色 `48484B`，
-   比键帽渐变亮且没有立体层次，所以看着与按键对不上。现在走
-   `keycap.toolbarCapsuleBackground()`，渐变端点 / 描边 / 底边缘 / 阴影
-   与字母键逐项一致，只有圆角和内缩不同。
-4. **工具栏文字加粗到 `semibold`**。原先没写 `fontWeight`，落到系统默认
-   `regular`，15pt 汉字显得偏细。`semibold` 是 PingFang SC 的字重上限，
-   想再重只能把标签预渲染成 PNG。
-
-### 元书皮肤-简约2
-
-1. 符号栏 `type` 改 `symbols` 修黑字 —— **已被简约3 还原**，见上。
-2. **工具栏改为一条通长胶囊**，8 个按钮回到透明底。此前给每个按钮单独上底，
-   在屏幕上读成八个小方框，很碎。胶囊上下内缩 3pt、圆角取剩余高度的一半，
-   两端是半圆。
-3. **符号栏底色改为与字母键同料**（`#414144 → #212122` 渐变），此前取的是
-   功能键那一档（`#29292B`），偏暗，像一块单独贴上的黑板。
-
-### 元书皮肤-简约（首个版本）
-
-1. 工具栏按钮加不透明底 —— 键盘背景已完全透明交给 iOS 26 系统背板，原本
-   全透明的按钮底在强制浅色的 App 里让 `E5E5E5` 文字压在浅色背板上
-   （实测底 210 / 字 212），几乎不可见。**已被简约2 的通长胶囊取代。**
-2. 符号栏底板补齐键帽材质（渐变 + 1px 描边 + 底边缘 + 阴影）。原本只有单色 +
-   一条下边缘，而并排键帽是完整立体材质，观感上是一块平板贴在立体键帽旁边。
-   新增 `keycap.panelBackground()`，九键与数字键盘共用。
-3. 符号栏文字 `fontWeight` 从 `0` 改为 `regular`（`0` 不在枚举内）。
-   注：这一项并非黑字的成因。
+如果你看到仓库里有 `jsonnet/`、`resources/` 之类的目录，说明上一次任务没有
+清理完，那些内容不代表任何一款正式皮肤。
