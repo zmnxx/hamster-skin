@@ -1,4 +1,4 @@
-# 元书皮肤-简约3
+# 元书皮肤-简约4
 
 元书输入法（Hamster3）皮肤源码。`jsonnet/` 是唯一真源，成品 YAML 由
 GitHub Actions 编译产出，**不要手改编译出来的 light/ dark/ 下的 yaml**。
@@ -20,6 +20,7 @@ jsonnet/                  皮肤源码（唯一真源）
   shared/styles/          配色令牌、键帽材质、字号、动效
   keyboards/              各键盘的布局与按键定义
 resources/{light,dark}/   贴图（动效帧、长按面板底、气泡底），不经过 jsonnet
+tools/                    静态审计脚本（死代码 / 未引用令牌）
 demo.png                  应用内皮肤预览图
 version.txt              版本号，Release 的 tag 取它
 ```
@@ -29,7 +30,7 @@ version.txt              版本号，Release 的 tag 取它
 不在本机编译（iSH 上全量编译是几十分钟级），走 Actions：
 
 1. 仓库 → Actions → build-skin → Run workflow
-2. `skin_name` 保持 `元书皮肤-简约3`（须与 `main.jsonnet` 里的 `name` 一致）
+2. `skin_name` 保持 `元书皮肤-简约4`（须与 `main.jsonnet` 里的 `name` 一致）
 3. 跑完在运行页底部 Artifacts 下载 `cskin`
 
 整轮约 36 秒，其中 jsonnet 编译约 13 秒。
@@ -46,7 +47,49 @@ version.txt              版本号，Release 的 tag 取它
 
 ## 版本历史
 
-### 元书皮肤-简约3（当前）
+### 元书皮肤-简约4（当前）
+
+**一致性修复**（此前只改了九键，其他键盘漏掉）：
+
+1. **iPad 工具栏胶囊圆角跟随 iPad 自己的高度**。此前 iPad 直接继承 iPhone 算出的
+   `(42-6)/2 = 18`，而 iPad 工具栏高 57pt，圆角偏小、读成圆角矩形而非胶囊。
+   现在 `shared/toolbar/iPad.libsonnet` 覆写为 `(57-6)/2 = 25.5`。
+2. **数字键盘 / 九键剩余的两处非法 `fontWeight: 0` 改为 `regular`**
+   （等号键前景、九键字母标签）。此前只改了两个 panels 里的 collection 前景。
+
+**死代码清理**（用 `audit.py` 做引用计数，逐条人工复核后删除）：
+
+- `keycap.libsonnet`：删 `config()`、`panelInsets()` 两个导出 —— 前者从未被调用，
+  后者的职责已被 `panelBackground()` 内部的 `keycapInsets()` 取代。
+- `color.libsonnet`：删 `resolveTheme()` 导出（`keycap.libsonnet` 有自己的同名
+  private 实现，这个公开版没有任何调用方）。
+- `styleFactories.libsonnet`：删 `genSystemImageStates()`（无调用；
+  它依赖的 `makeSystemImageStyle()` 仍被 8 处使用，保留）。
+- `functionRowPatch.libsonnet`：删 `rawCell()`。
+- `pinyin26/builder.libsonnet`：删 `applySwipeAssistToMap()`（同组的
+  `resolveSwipeAssistMode` / `assistedDirectionEnabled` 都有 `$.` 自引用，保留）。
+- `alphabetic26/systemKeys.libsonnet`：删 `local slBtn`（定义了但
+  `spaceLeftButton` 实际复用的是 `srBtn`，两者字段等价）。
+- `center.libsonnet`：删 `长按气泡文字偏移` / `长按气泡sf符号偏移` 两个令牌 ——
+  唯一的引用在 `hintSymbolsStyles.libsonnet` 里且是注释状态，同时清掉那两行注释
+  与随之无用的 `center` import。
+- 清掉 6 处「声明了但未使用」的 import：`keyboard26Layout`（拼音 26 / 英文 26 各一）、
+  `animation`（iPadBuilder）、`styleFactories`（swipeKeyStyles）、
+  `Settings`（slideButtonStyles / swipeDataEn）、`color`（layoutData）。
+
+审计工具留在 `tools/`：`audit.py`（未引用的令牌 / 导出 / import / local）与
+`audit_tokens.py`（偏移 / 字号 / 动画 / others 里的未引用项）。以后改完可以再跑：
+
+```bash
+python3 tools/audit.py jsonnet
+python3 tools/audit_tokens.py jsonnet
+```
+
+两个脚本只做文本级引用计数，jsonnet 的动态字段名它看不懂，所以输出是
+「值得人工复核的候选清单」而不是结论 —— 删之前必须逐条确认。
+（例：`$.name` / `self.name` 自引用一开始就漏算过，把一批活代码误报成死代码。）
+
+### 元书皮肤-简约3
 
 1. **符号栏回退到 `type: 't9Symbols'`**。简约2 为修黑字把它换成 `symbols`，
    代价没料到那么大：这一列不只是符号栏，**打字时还兼任拼音选择列**

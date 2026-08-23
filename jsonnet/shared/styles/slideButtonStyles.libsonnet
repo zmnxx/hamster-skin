@@ -1,5 +1,4 @@
 // 定义滑动切换按钮的共享前景样式。
-local Settings = import '../../Custom.libsonnet';
 local color = import 'color.libsonnet';
 local fontSize = import 'fontSize.libsonnet';
 

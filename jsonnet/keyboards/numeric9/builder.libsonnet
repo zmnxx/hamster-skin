@@ -288,7 +288,7 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       },
       atButtonForegroundStyle:
         // 生成等号键前景。
-        makeFunctionTextForegroundStyle('=', fontSize['collection前景字体大小'], {}, { fontWeight: 0 }),
+        makeFunctionTextForegroundStyle('=', fontSize['collection前景字体大小'], {}, { fontWeight: 'regular' }),
       enterButton: createButton('enter', {}, {}, $) + {
         backgroundStyle: [
           {

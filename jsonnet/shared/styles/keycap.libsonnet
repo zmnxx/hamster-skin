@@ -172,18 +172,15 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
   // 是否启用空山素影键帽
   enabled(Settings):: isEnabled(Settings),
 
-  config(Settings):: cfg(Settings),
-
   // -------------------------------------------------------------------------
-  // 面板类 collection（九宫格/数字键盘左侧符号栏、符号键盘分类栏）的
-  // 间距与圆角。这些区域和键帽并排显示，必须跟键帽同一档，
+  // 面板类 collection（九宫格/数字键盘左侧符号栏、符号键盘分类栏）的圆角。
+  // 这些区域和键帽并排显示，必须跟键帽同一档，
   // 否则会读成「另一套控件贴上来」。
   // 未启用空山键帽时回退到 Settings 的全局值，保持万象原样。
+  //
+  // 间距不需要单独的 getter —— 用 panelBackground() 的键盘（九键 / 数字键盘）
+  // 由它内部统一取 keycapInsets()；符号键盘只用圆角，间距是自己硬编码的。
   // -------------------------------------------------------------------------
-  panelInsets(Settings, orientation)::
-    if !isEnabled(Settings) then fallbackInsets(Settings, orientation)
-    else keycapInsets(Settings, orientation, ''),
-
   panelRadius(Settings)::
     if !isEnabled(Settings) then Settings.cornerRadius
     else cfg(Settings).cornerRadius,

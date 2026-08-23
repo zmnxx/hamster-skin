@@ -233,13 +233,11 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
     spaceRightButtonForegroundStyle: makeSpaceTextForegroundStyle('.'),
     spaceRightButtonForegroundStyle2: makeSpaceTextForegroundStyle('.'),
 
-    local slBtn = createButton(
-      'spaceLeft',
-      if orientation == 'portrait' then keyboardLayout['竖屏按键尺寸']['spaceRight键size'] else keyboardLayout['横屏按键尺寸']['spaceRight键size'],
-      {},
-      $,
-      false
-    ),
+    // 注意：左侧标点键直接复用 srBtn（右侧标点键的按钮对象）。
+    // 两者的 size 取的是同一个 'spaceRight键size'，且 action / foregroundStyle
+    // 都在下面被覆盖，所以复用与单独 createButton('spaceLeft', ...) 生成的对象
+    // 逐字段相同 —— 曾经存在的 `local slBtn = createButton('spaceLeft', ...)`
+    // 从未被引用，已删除。
     spaceLeftButton: srBtn {
       foregroundStyle: [
         'spaceLeftButtonForegroundStyle',

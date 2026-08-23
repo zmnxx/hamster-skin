@@ -9,7 +9,6 @@ local others = import '../../../shared/styles/others.libsonnet';
 local swipeKeyStyles = import '../../../shared/styles/swipeKeyStyles.libsonnet';
 local styleFactories = import '../../../shared/styles/styleFactories.libsonnet';
 local keycap = import '../../../shared/styles/keycap.libsonnet';
-local animation = import '../../../shared/styles/animation.libsonnet';
 
 {
   deviceType:: 'iPad',

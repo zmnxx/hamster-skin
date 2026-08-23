@@ -2,7 +2,6 @@
 local Settings = import '../../Custom.libsonnet';
 local keyboardRuntime = import '../../keyboards/common/layoutAssembly/keyboardLayoutAssembly.libsonnet';
 local keyboard26Builder = import 'builder.libsonnet';
-local keyboard26Layout = import '../common/keyboard26/layout.libsonnet';
 local letter26KeysSpecs = import '../common/keyboard26/letters.libsonnet';
 local swipeData = import '../../shared/data/swipeData.libsonnet';
 

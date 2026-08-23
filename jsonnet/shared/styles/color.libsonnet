@@ -189,7 +189,4 @@ local resolvedDark = if Settings.ios26_style then ios26_dark else base_dark;
   dark: if forced == 'light' then resolvedLight
   else if forced == 'dark' then resolvedDark
   else resolvedDark,
-
-  // 供其他模块查询「当前 theme 实际应该用哪套配色」
-  resolveTheme(theme):: if forced == false then theme else forced,
 }

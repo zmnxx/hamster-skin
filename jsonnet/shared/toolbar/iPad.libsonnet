@@ -1,5 +1,6 @@
 // 平板端工具栏入口，读取平板专属配置，并在手机工具栏基础上覆盖平板布局与少量动作。
 local Settings = import '../../Custom.libsonnet';
+local keycap = import '../styles/keycap.libsonnet';
 local toolbarShared = import 'config.libsonnet';
 local ipadRenderer = import 'iPadRenderer.libsonnet';
 local toolbar = import 'iPhone.libsonnet';
@@ -41,6 +42,15 @@ local toolbarMenu = toolbarShared.getIpadToolbarMenu(toolbarConfig);
       horizontalCandidatesStyle+: {
         insets+: { left: 3, right: 10 },
       },
+      // 工具栏胶囊的圆角要跟着 iPad 自己的工具栏高度走。
+      // iPhone 那边算的是 (42-6)/2=18，直接拿到 iPad（57pt 高）上圆角就偏小，
+      // 读成圆角矩形而不是胶囊。
+      toolbarCapsuleBackgroundStyle: keycap.toolbarCapsuleBackground(
+        theme,
+        Settings,
+        (Settings.toolbar_config.ipad.toolbar_height - 6) / 2,
+        { top: 3, bottom: 3 }
+      ),
       toolbarLayout: ipadRendererConfig.toolbarLayout,
 
       toolbarSlideButtonsIpadCenter: ipadRendererConfig.toolbarSlideButtonsIpadCenter,

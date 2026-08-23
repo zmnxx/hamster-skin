@@ -39,17 +39,6 @@
     [if center != {} then 'center']: center,
   },
 
-  genSystemImageStates(keyMap, imageMap, suffix, fontSizeValue, normalColor, highlightColor, centerValue):: {
-    [keyName + suffix]: $.makeSystemImageStyle(
-      imageMap[keyName],
-      fontSizeValue,
-      normalColor,
-      highlightColor,
-      centerValue
-    )
-    for keyName in std.objectFields(keyMap)
-  },
-
   genTextStates(keyMap, textMap, suffix, fontSizeValue, normalColor, highlightColor, centerValue):: {
     [keyName + suffix]: $.makeTextStyle(
       textMap[keyName],

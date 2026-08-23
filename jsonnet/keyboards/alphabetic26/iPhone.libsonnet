@@ -2,7 +2,6 @@
 local Settings = import '../../Custom.libsonnet';
 local keyboardRuntime = import '../../keyboards/common/layoutAssembly/keyboardLayoutAssembly.libsonnet';
 local keyboard26AlphabeticBuilder = import 'builder.libsonnet';
-local keyboard26Layout = import '../common/keyboard26/layout.libsonnet';
 local swipeData = import '../../shared/data/swipeDataEn.libsonnet';
 
 local defaultContext = keyboardRuntime.new(Settings, 'light', 'portrait', 'iPhone');

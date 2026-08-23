@@ -1,5 +1,4 @@
 // 定义长按提示气泡的共享样式。
-local center = import 'center.libsonnet';
 local color = import 'color.libsonnet';
 local fontSize = import 'fontSize.libsonnet';
 
@@ -11,7 +10,6 @@ local textStyle(text, fs, theme) = {  //fs 字体大小
   fontSize: fs,
   normalColor: color[theme]['长按非选中字体颜色'],
   highlightColor: color[theme]['长按选中字体颜色'],
-  // center: center['长按气泡文字偏移'],
 };
 
 // sf符号前景样式
@@ -21,11 +19,7 @@ local systemImageStyle(systemImageName, fs, theme) = {
   fontSize: fs,
   normalColor: color[theme]['长按非选中字体颜色'],
   highlightColor: color[theme]['长按选中字体颜色'],
-  // center: center['长按气泡sf符号偏移'],
 };
-
-// 长按背景样式
-
 
 // 长按符号样式生成
 local holdSymbolsStyle(key, selectedIndex, size, symbol_list, theme) = {

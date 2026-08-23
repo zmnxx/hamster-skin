@@ -1,5 +1,4 @@
 // 定义不含功能行时的共享基础布局数据。
-local color = import '../styles/color.libsonnet';
 
 {
   getKeyboardLayout(theme)::

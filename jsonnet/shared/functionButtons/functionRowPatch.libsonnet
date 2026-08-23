@@ -6,7 +6,6 @@ local functionButtonSpecs = import '../functionButtons/specs.libsonnet';
   functionRowOrderedKeys:: functionButtonSpecs.resolveOrderedKeys(Settings),
 
   cell(name):: { Cell: name + 'Button' },
-  rawCell(name):: { Cell: name },
 
   functionCellWidth(count):: {
     width: {

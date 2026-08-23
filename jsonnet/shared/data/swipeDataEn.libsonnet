@@ -9,7 +9,6 @@
 //
 // 角标位置为「上划右上、下划左上」，与 Write 2023 一致，
 // 定位值见 shared/styles/center.libsonnet 的『英文上划/下划文字偏移』。
-local Settings = import '../../Custom.libsonnet';
 
 
 local genSwipeenData(deviceType) = {  // 英文键盘与通用配置不同的同字母滑动动作，在此覆盖通用数据。

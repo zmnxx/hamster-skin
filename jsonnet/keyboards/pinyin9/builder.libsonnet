@@ -340,7 +340,8 @@ local pinyin9T9 = import 't9.libsonnet';
         normalColor: color[theme]['按键前景颜色'],
         highlightColor: color[theme]['按键前景颜色'],
         fontSize: fontSize['中文九键字符键前景文字大小'],
-        fontWeight: 0,
+        // fontWeight 是枚举（ultraLight…black），0 不是合法取值
+        fontWeight: 'regular',
         center: center['中文九键字符前景偏移'],
       }
       for key in std.objectFields(t9Letters)

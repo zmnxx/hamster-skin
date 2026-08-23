@@ -49,15 +49,6 @@ local functionButtonStyles = import '../../shared/functionButtons/styles.libsonn
     (direction == 'up' && std.member(['up', 'all'], mode)) ||
     (direction == 'down' && std.member(['down', 'all'], mode)),
 
-  applySwipeAssistToMap(baseMap, letters, mode):: {
-    [key]:
-      if mode != 'none' && std.member(letters, key) then
-        baseMap[key] + { action: { character: std.asciiUpper(key) } }
-      else
-        baseMap[key]
-    for key in std.objectFields(baseMap)
-  },
-
   extractHintAssistParts(baseList, key):: {
     lower:
       std.filter(

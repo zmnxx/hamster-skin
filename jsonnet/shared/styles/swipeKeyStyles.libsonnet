@@ -4,7 +4,6 @@ local Settings = import '../../Custom.libsonnet';
 local center = import '../styles/center.libsonnet';
 local color = import '../styles/color.libsonnet';
 local fontSize = import '../styles/fontSize.libsonnet';
-local styleFactories = import 'styleFactories.libsonnet';
 
 local swipeStyle(center, colorMap, fontSizeConfig, fs=null) = {
   local makeSwipeTextStyle(fontSizeValue) =
