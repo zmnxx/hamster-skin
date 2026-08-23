@@ -15,17 +15,39 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       size: { height: '3/4' },
       insets: { top: 6, bottom: 6 },
       backgroundStyle: 'collectionBackgroundStyle',
-      // 用 'symbols' 而不是 't9Symbols'：后者的文字颜色不受皮肤控制，
-      // 在被强制浅色的 App 里会变成系统黑字（详见 t9.libsonnet 的注释）。
-      // 数字键盘的符号栏一直用 symbols，在任何 App 里都是白字。
-      type: 'symbols',
+      // 必须是 t9Symbols。它不只是符号列，还兼任**打字时的拼音选择列**
+      // （空山素影源码原话：「t9拼音符号列表兼拼音候选」），并且数据源跟随
+      // 元书「键盘设置 → 中文九键符号设定」。
+      // 曾经为了修「强制浅色 App 里符号变黑字」把它换成 symbols，结果打字时
+      // 拼音选择列消失、符号被写死 —— 那是功能回归，不能这么修。
+      type: 't9Symbols',
       dataSource: 'symbols',
       cellStyle: 'collectionCellStyle',
-      // symbols 默认不显示分隔线，这里显式打开，保持与原先 t9Symbols 一致的观感
-      displaySeparatorLine: true,
-      separatorLineColor: color[theme]['符号区分隔线颜色'],
-      // 数据源固定 4 项，可视行数跟着收，避免留空行
-      maximumRow: 4,
+      // 去掉格子之间的横线（用户要求，与 123 数字键盘符号栏观感一致）。
+      // t9Symbols 的 displaySeparatorLine 默认是 true，必须显式关掉。
+      displaySeparatorLine: false,
+      // 下面三项是针对「文字颜色不受皮肤控制」的多路尝试：
+      // cellStyle 那条链（collectionCellForegroundStyle）在 t9Symbols 上似乎
+      // 不被采纳，实测渲染成系统 label 色。这里额外挂 candidateStyle 与
+      // 直接写在节点上的 foregroundStyle —— 元书对不认识的 Key 是静默忽略，
+      // 多写无害；哪条生效算哪条。
+      candidateStyle: 'collectionCandidateStyle',
+      foregroundStyle: 'collectionCellForegroundStyle',
+    },
+    // 供上面的 candidateStyle 引用。字段名照候选字单元格样式那一套写
+    // （textColor / indexColor / commentColor），而不是 normalColor。
+    collectionCandidateStyle: {
+      textColor: color[theme]['collection前景颜色'],
+      indexColor: color[theme]['collection前景颜色'],
+      commentColor: color[theme]['collection前景颜色'],
+      preferredTextColor: color[theme]['collection前景颜色'],
+      preferredIndexColor: color[theme]['collection前景颜色'],
+      preferredCommentColor: color[theme]['collection前景颜色'],
+      highlightBackgroundColor: 0,
+      preferredBackgroundColor: 0,
+      textFontSize: fontSize['collection前景字体大小'],
+      indexFontSize: fontSize['collection前景字体大小'],
+      commentFontSize: fontSize['collection前景字体大小'],
     },
     collectionBackgroundStyle: keycap.panelBackground(
       theme, orientation, context.Settings, color,

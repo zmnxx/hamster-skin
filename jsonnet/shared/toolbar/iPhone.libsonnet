@@ -3,6 +3,7 @@ local Settings = import '../../Custom.libsonnet';
 local center = import '../styles/center.libsonnet';
 local color = import '../styles/color.libsonnet';
 local fontSize = import '../styles/fontSize.libsonnet';
+local keycap = import '../styles/keycap.libsonnet';
 local styleFactories = import '../styles/styleFactories.libsonnet';
 local toolbarShared = import 'config.libsonnet';
 local iPhoneRenderer = import 'iPhoneRenderer.libsonnet';
@@ -107,6 +108,10 @@ local getToolBar(theme, overrides={}) =
     normalColor: color[theme]['toolbar按键颜色'],
     highlightColor: color[theme]['toolbar按键颜色'],
     fontSize: fontSizeValue,
+    // 原本没写 fontWeight，落到系统默认 regular，在 15pt 的汉字上显得偏细。
+    // PingFang SC 的字重上限是 semibold，这里顶到上限。
+    // 想再重只能把标签预渲染成 PNG（见 skill 的 toolbar-icons 章节）。
+    fontWeight: 'semibold',
     center: center['toolbar按键文字偏移'],
   } + extra;
   local makeToolbarButtonStyle(foregroundStyle, action, extra={}) = {
@@ -161,13 +166,12 @@ local getToolBar(theme, overrides={}) =
       insets: { left: 10, right: 10 },
       backgroundStyle: 'toolbarCapsuleBackgroundStyle',
     },
-    toolbarCapsuleBackgroundStyle: {
-      buttonStyleType: 'geometry',
-      normalColor: color[theme]['toolbar胶囊背景颜色'],
-      highlightColor: color[theme]['toolbar胶囊背景颜色'],
-      cornerRadius: (Settings.toolbar_config.toolbar_height - 6) / 2,
-      insets: { top: 3, bottom: 3 },
-    },
+    toolbarCapsuleBackgroundStyle: keycap.toolbarCapsuleBackground(
+      theme,
+      Settings,
+      (Settings.toolbar_config.toolbar_height - 6) / 2,
+      { top: 3, bottom: 3 }
+    ),
     toolbarLayout: iPhoneRendererConfig.toolbarLayout,
 
 

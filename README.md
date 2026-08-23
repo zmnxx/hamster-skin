@@ -1,4 +1,4 @@
-# 元书皮肤-简约2
+# 元书皮肤-简约3
 
 元书输入法（Hamster3）皮肤源码。`jsonnet/` 是唯一真源，成品 YAML 由
 GitHub Actions 编译产出，**不要手改编译出来的 light/ dark/ 下的 yaml**。
@@ -29,7 +29,7 @@ version.txt              版本号，Release 的 tag 取它
 不在本机编译（iSH 上全量编译是几十分钟级），走 Actions：
 
 1. 仓库 → Actions → build-skin → Run workflow
-2. `skin_name` 保持 `元书皮肤-简约2`（须与 `main.jsonnet` 里的 `name` 一致）
+2. `skin_name` 保持 `元书皮肤-简约3`（须与 `main.jsonnet` 里的 `name` 一致）
 3. 跑完在运行页底部 Artifacts 下载 `cskin`
 
 整轮约 36 秒，其中 jsonnet 编译约 13 秒。
@@ -46,13 +46,27 @@ version.txt              版本号，Release 的 tag 取它
 
 ## 版本历史
 
-### 元书皮肤-简约2（当前）
+### 元书皮肤-简约3（当前）
 
-1. **符号栏改用 `type: 'symbols'`**，不再用 `t9Symbols`。后者的文字颜色不受皮肤
-   控制（元书作者的官方 T9 皮肤也没给它写 cellStyle），在被强制浅色的 App 里
-   一律渲染成系统黑字。数字键盘的符号栏一直用 `symbols`，在任何 App 里都是白字，
-   这是最直接的对照。代价：符号内容不再跟随「键盘设置 → 中文九键符号设定」，
-   改为在 `jsonnet/keyboards/pinyin9/t9.libsonnet` 里写死四项（，？！、）。
+1. **符号栏回退到 `type: 't9Symbols'`**。简约2 为修黑字把它换成 `symbols`，
+   代价没料到那么大：这一列不只是符号栏，**打字时还兼任拼音选择列**
+   （空山素影源码原话「t9拼音符号列表兼拼音候选」），换成 `symbols` 之后
+   拼音选择消失、符号也被写死。功能回归不可接受，已还原。
+   黑字改走另一条路：额外挂 `candidateStyle` 与节点级 `foregroundStyle` —
+   元书对不认识的 Key 静默忽略，多写无害，哪条生效算哪条。
+2. **去掉符号栏格子间的横线**（`displaySeparatorLine: false`）。
+   `t9Symbols` 该项默认 `true`，必须显式关掉。
+3. **工具栏胶囊改为与字母键完全同料**。此前是一层单独的平色 `48484B`，
+   比键帽渐变亮且没有立体层次，所以看着与按键对不上。现在走
+   `keycap.toolbarCapsuleBackground()`，渐变端点 / 描边 / 底边缘 / 阴影
+   与字母键逐项一致，只有圆角和内缩不同。
+4. **工具栏文字加粗到 `semibold`**。原先没写 `fontWeight`，落到系统默认
+   `regular`，15pt 汉字显得偏细。`semibold` 是 PingFang SC 的字重上限，
+   想再重只能把标签预渲染成 PNG。
+
+### 元书皮肤-简约2
+
+1. 符号栏 `type` 改 `symbols` 修黑字 —— **已被简约3 还原**，见上。
 2. **工具栏改为一条通长胶囊**，8 个按钮回到透明底。此前给每个按钮单独上底，
    在屏幕上读成八个小方框，很碎。胶囊上下内缩 3pt、圆角取剩余高度的一半，
    两端是半圆。
@@ -68,4 +82,4 @@ version.txt              版本号，Release 的 tag 取它
    一条下边缘，而并排键帽是完整立体材质，观感上是一块平板贴在立体键帽旁边。
    新增 `keycap.panelBackground()`，九键与数字键盘共用。
 3. 符号栏文字 `fontWeight` 从 `0` 改为 `regular`（`0` 不在枚举内）。
-   注：这一项并非黑字的成因，真正原因见简约2 的第 1 条。
+   注：这一项并非黑字的成因。

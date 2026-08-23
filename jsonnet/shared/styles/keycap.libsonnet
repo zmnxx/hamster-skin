@@ -234,6 +234,37 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
       },
 
   // -------------------------------------------------------------------------
+  // 工具栏通长胶囊底。
+  //
+  // 与字母键完全同料（同一组渐变端点 / 描边 / 底边缘 / 阴影），只有圆角与
+  // 内缩不同 —— 用户反馈胶囊颜色和按键对不上，原因是它此前是一层单独的
+  // 平色 48484B，比键帽渐变亮且没有立体层次。
+  // -------------------------------------------------------------------------
+  toolbarCapsuleBackground(theme0, Settings, cornerRadius, insets)::
+    local theme = resolveTheme(Settings, theme0);
+    if !isEnabled(Settings) then
+      styleFactories.makeGeometryStyle('00000000')
+    else
+      local c = kongshan[theme];
+      local k = cfg(Settings);
+      local normal = c['字母键背景颜色-普通'];
+      {
+        buttonStyleType: 'geometry',
+        normalColor: normal,
+        highlightColor: normal,
+        [if std.isArray(normal) then 'colorLocation']: [0, 1],
+        cornerRadius: cornerRadius,
+        insets: insets,
+        borderSize: k.borderSize,
+        normalBorderColor: c['键帽描边颜色-普通'],
+        highlightBorderColor: c['键帽描边颜色-普通'],
+        normalLowerEdgeColor: c['键帽底边缘颜色-普通'],
+        highlightLowerEdgeColor: c['键帽底边缘颜色-普通'],
+        shadowOpacity: k.shadowOpacity,
+        shadowRadius: k.shadowRadius,
+      },
+
+  // -------------------------------------------------------------------------
   // 按键背景
   //
   // 签名与万象各 builder 里原本的 makeButtonBackground 一致，便于原地替换。

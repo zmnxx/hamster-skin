@@ -44,12 +44,12 @@ local numericSymbols = [
       },
       insets: { top: 6, bottom: 6 },
       backgroundStyle: 'collectionBackgroundStyle',
-      // 同竖屏：t9Symbols 的文字颜色不受皮肤控制，改用 symbols
-      type: 'symbols',
+      // 数字键盘横屏这一列同样兼任拼音选择，保持 t9Symbols
+      type: 't9Symbols',
       dataSource: 'landscapeSymbols',
       cellStyle: 'collectionCellStyle',
-      displaySeparatorLine: true,
-      separatorLineColor: color[theme]['符号区分隔线颜色'],
+      // 去掉格子间横线，与竖屏 123 符号栏一致
+      displaySeparatorLine: false,
     },
     landscapeNumericSymbols: {
       size: {
