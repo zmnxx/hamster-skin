@@ -15,12 +15,17 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       size: { height: '3/4' },
       insets: { top: 6, bottom: 6 },
       backgroundStyle: 'collectionBackgroundStyle',
-      type: 't9Symbols',
+      // 用 'symbols' 而不是 't9Symbols'：后者的文字颜色不受皮肤控制，
+      // 在被强制浅色的 App 里会变成系统黑字（详见 t9.libsonnet 的注释）。
+      // 数字键盘的符号栏一直用 symbols，在任何 App 里都是白字。
+      type: 'symbols',
       dataSource: 'symbols',
       cellStyle: 'collectionCellStyle',
-      // t9Symbols 默认显示分隔线，但不写颜色就用系统灰，
-      // 在被强制浅色的 App 里几乎看不见，这里显式指定。
+      // symbols 默认不显示分隔线，这里显式打开，保持与原先 t9Symbols 一致的观感
+      displaySeparatorLine: true,
       separatorLineColor: color[theme]['符号区分隔线颜色'],
+      // 数据源固定 4 项，可视行数跟着收，避免留空行
+      maximumRow: 4,
     },
     collectionBackgroundStyle: keycap.panelBackground(
       theme, orientation, context.Settings, color,

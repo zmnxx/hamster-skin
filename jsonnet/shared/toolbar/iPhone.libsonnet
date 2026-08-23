@@ -149,9 +149,24 @@ local getToolBar(theme, overrides={}) =
       highlightColor: color[theme]['按键前景颜色'],
     },
     // 工具栏样式
+    //
+    // 整条工具栏套一个通长胶囊，而不是让 8 个按钮各自带底 —— 后者在屏幕上
+    // 读成八个小方框，很碎。胶囊上下各内缩 3pt，圆角取剩余高度的一半
+    // （toolbar_height 42 - 6 = 36 → 18），于是两端是半圆。
+    //
+    // 这与「键盘背景保持透明」不冲突：透明是为了让四角与 preedit 带透出同一层
+    // 系统背板、消除接缝；胶囊是宽度内缩 10pt 的一条独立控件，本来就该有自己
+    // 的边界，不会产生横贯全屏的硬边。
     toolbarStyle: {
       insets: { left: 10, right: 10 },
-      backgroundStyle: 'toolbarBackgroundStyle',
+      backgroundStyle: 'toolbarCapsuleBackgroundStyle',
+    },
+    toolbarCapsuleBackgroundStyle: {
+      buttonStyleType: 'geometry',
+      normalColor: color[theme]['toolbar胶囊背景颜色'],
+      highlightColor: color[theme]['toolbar胶囊背景颜色'],
+      cornerRadius: (Settings.toolbar_config.toolbar_height - 6) / 2,
+      insets: { top: 3, bottom: 3 },
     },
     toolbarLayout: iPhoneRendererConfig.toolbarLayout,
 

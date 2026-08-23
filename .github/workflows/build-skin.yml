@@ -11,7 +11,7 @@ on:
       skin_name:
         description: '皮肤名（决定 .cskin 内的目录名与文件名，须与 main.jsonnet 的 name 一致）'
         required: false
-        default: '元书皮肤-简约'
+        default: '元书皮肤-简约2'
       make_release:
         description: '同时发一个 Release（tag 用 version.txt 的内容）'
         type: boolean

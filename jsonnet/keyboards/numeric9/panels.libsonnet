@@ -44,9 +44,11 @@ local numericSymbols = [
       },
       insets: { top: 6, bottom: 6 },
       backgroundStyle: 'collectionBackgroundStyle',
-      type: 't9Symbols',
+      // 同竖屏：t9Symbols 的文字颜色不受皮肤控制，改用 symbols
+      type: 'symbols',
       dataSource: 'landscapeSymbols',
       cellStyle: 'collectionCellStyle',
+      displaySeparatorLine: true,
       separatorLineColor: color[theme]['符号区分隔线颜色'],
     },
     landscapeNumericSymbols: {

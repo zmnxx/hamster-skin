@@ -212,8 +212,9 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
     else
       local c = kongshan[theme];
       local k = cfg(Settings);
-      // 与功能键同料：符号栏在视觉层级上属于「功能面」，不是字母键那一档
-      local normal = c['功能键背景颜色-普通'];
+      // 与**字母键**同料。用户要求符号栏底色与按键一致；
+      // 原先取功能键那一档（更暗），观感上像一块单独贴上的黑板。
+      local normal = c['字母键背景颜色-普通'];
       {
         buttonStyleType: 'geometry',
         normalColor: normal,
