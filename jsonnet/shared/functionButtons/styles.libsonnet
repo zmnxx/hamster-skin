@@ -1,0 +1,92 @@
+// 生成功能按键专用前景样式，并内聚功能按键自己的文字映射。
+local Settings = import '../../Custom.libsonnet';
+local styleFactories = import '../styles/styleFactories.libsonnet';
+
+{
+  funcKeyMap: {
+    left: 'left',
+    head: 'head',
+    select: 'select',
+    cut: 'cut',
+    copy: 'copy',
+    paste: 'paste',
+    tail: 'tail',
+    right: 'right',
+  },
+
+  // 普通状态文字映射
+  funcKeyTextMap(Settings): {
+    left: '左移',
+    head: '行首',
+    select: '全选',
+    cut: '剪切',
+    copy: '复制',
+    paste: '粘贴',
+    tail: '行尾',
+    right: '右移',
+  },
+
+  // 预编辑状态文字映射（打字时）
+  funcKeyPreeditTextMap(Settings): {
+    left: '⇠',
+    head: '⇅',
+    // 九键打字态：次选 / 三选上屏，词首 / 词尾为以词定字。
+    select: '次选',
+    cut: '三选',
+    copy: '词首',
+    paste: '词尾',
+    // 打字时 tail 变为候选栏展开/收起开关，故显示「候选」。
+    // 非打字状态仍是「行尾」，见 funcKeyTextMap。
+    tail: '候选',
+    right: '⇢',
+  },
+
+  // 大写状态文字映射（同普通状态）
+  funcKeyUppercasedTextMap(Settings): {
+    left: '左移',
+    head: '行首',
+    select: '全选',
+    cut: '剪切',
+    copy: '复制',
+    paste: '粘贴',
+    tail: '行尾',
+    right: '右移',
+  },
+
+  genFuncKeyStyles(fontSize, color, theme, center)::
+    local funcKeyMap = self.funcKeyMap;
+    local funcKeyTextMap = self.funcKeyTextMap(Settings);
+    local funcKeyPreeditTextMap = self.funcKeyPreeditTextMap(Settings);
+    local funcKeyUppercasedTextMap = self.funcKeyUppercasedTextMap(Settings);
+    // 功能行文字统一到与工具栏同一字重（medium），否则工具栏偏粗、功能行偏细，
+    // 上下两排看起来像两套字。字号 / 偏移已在 fontSize / center 层与工具栏对齐。
+    local funcFontWeight = 'medium';
+    styleFactories.genTextStates(
+      funcKeyMap,
+      funcKeyTextMap,
+      'ButtonForegroundStyle',
+      fontSize['功能按键sf符号大小'],
+      color[theme]['按键前景颜色'],
+      color[theme]['按键前景颜色'],
+      center['功能键前景文字偏移'],
+      funcFontWeight
+    ) + styleFactories.genTextStates(
+      funcKeyMap,
+      funcKeyPreeditTextMap,
+      'ButtonPreeditForegroundStyle',
+      fontSize['功能按键sf符号大小'],
+      color[theme]['按键前景颜色'],
+      color[theme]['按键前景颜色'],
+      center['功能键前景文字偏移'],
+      funcFontWeight
+    ) + styleFactories.genTextStates(
+      funcKeyMap,
+      funcKeyUppercasedTextMap,
+      'ButtonUppercasedStateForegroundStyle',
+      fontSize['功能按键sf符号大小'],
+      color[theme]['按键前景颜色'],
+      color[theme]['按键前景颜色'],
+      center['功能键前景文字偏移'],
+      funcFontWeight
+    ),
+}
