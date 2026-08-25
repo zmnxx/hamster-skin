@@ -1,0 +1,151 @@
+// 定义功能按钮的动作与通知规格。
+{
+  defaultOrderedKeys: ['left', 'head', 'select', 'cut', 'copy', 'paste', 'tail', 'right'],
+
+  resolveOrderedKeys(Settings)::
+    local config =
+      if std.objectHas(Settings, 'function_button_config') && std.type(Settings.function_button_config) == 'object' then
+        Settings.function_button_config
+      else
+        {};
+    local configured =
+      if std.objectHas(config, 'order') && std.type(config.order) == 'array' then
+        [
+          key
+          for key in config.order
+          if std.type(key) == 'string' && std.member(self.defaultOrderedKeys, key)
+        ]
+      else
+        [];
+    if std.length(configured) > 0 then configured else self.defaultOrderedKeys,
+
+  actionMap: {
+    left: { action: 'moveCursorBackward' },
+    head: { action: { shortcut: '#行首' } },
+    select: { action: { shortcut: '#selectText' } },
+    cut: { action: { shortcut: '#cut' } },
+    copy: { action: { shortcut: '#copy' } },
+    paste: { action: { shortcut: '#paste' } },
+    tail: { action: { shortcut: '#行尾' } },
+    right: { action: 'moveCursorForward' },
+  },
+
+  swipeUpMap: {
+    left: {},
+    head: {},
+    select: {},
+    cut: {},
+    copy: {},
+    paste: {},
+    tail: {},
+    right: {},
+  },
+
+  swipeDownMap: {
+    left: {},
+    head: {},
+    select: {},
+    cut: {},
+    copy: {},
+    paste: {},
+    tail: {},
+    right: {},
+  },
+
+  repeatMap: {
+    left: { action: 'moveCursorBackward' },
+    head: {},
+    select: {},
+    cut: {},
+    copy: {},
+    paste: {},
+    tail: {},
+    right: { action: 'moveCursorForward' },
+  },
+
+  notificationActionMap: {
+    left: { action: { sendKeys: 'Up' } },
+    head: { action: { shortcut: '#rimeNextPage' } },
+    select: { action: { character: '7' } },
+    cut: { action: { character: '8' } },
+    copy: { action: { character: '9' } },
+    paste: { action: { character: '0' } },
+    // 打字时 tail 不再发 backslash，改为展开/收起候选栏。
+    // 非打字状态的行尾动作在 actionMap 里，保持不变。
+    tail: { action: { shortcut: '#candidatesBarStateToggle' } },
+    right: { action: { sendKeys: 'Down' } },
+  },
+
+  notificationSwipeUpMap: {
+    left: { action: { character: '[' } },
+    head: { action: { shortcut: '#rimePreviousPage' } },
+    select: { action: { sendKeys: 'control+1' } },
+    cut: { action: { sendKeys: 'control+2' } },
+    copy: { action: { sendKeys: 'control+3' } },
+    paste: { action: { sendKeys: 'control+4' } },
+    // 键面已是「候选」，上划再插反斜杠会误输入，清空。
+    tail: {},
+    right: { action: { character: ']' } },
+  },
+
+  notificationSwipeDownMap: {
+    left: { action: { sendKeys: 'Left' } },
+    head: { action: { shortcut: '#rimeNextPage' } },
+    select: { action: { sendKeys: 'control+1' } },
+    cut: { action: { sendKeys: 'control+2' } },
+    copy: { action: { sendKeys: 'control+3' } },
+    paste: { action: { sendKeys: 'control+4' } },
+    // 同上划，避免在「候选」键上误输反斜杠。
+    tail: {},
+    right: { action: { sendKeys: 'Right' } },
+  },
+
+  notificationRepeatMap: {
+    left: { action: { sendKeys: 'Up' } },
+    head: {},
+    select: {},
+    cut: {},
+    copy: {},
+    paste: {},
+    tail: {},
+    right: { action: { sendKeys: 'Down' } },
+  },
+
+  resolveNotificationActionMap(keyboardType)::
+    if keyboardType == 't9' then
+      self.notificationActionMap {
+        // 九键打字态这四个键：
+        // 次选 / 三选 —— 九键重码远多于全拼，直接点选第二、三候选比翻找快。
+        // 词首 / 词尾 —— 以词定字。九键打单字重码太多，先打词再取其中一个字更准。
+        //                方案侧需启用 lua_processor@*select_character，并把
+        //                key_binder/select_first_character 设为 bracketleft、
+        //                select_last_character 设为 bracketright。
+        select: { action: { shortcut: '#次选上屏' } },
+        cut: { action: { shortcut: '#三选上屏' } },
+        copy: { action: { character: '[' } },
+        paste: { action: { character: ']' } },
+      }
+    else
+      self.notificationActionMap,
+
+
+  notificationEnabled(Settings, keyboardType, key)::
+    local config =
+      if std.objectHas(Settings, 'function_button_config') && std.type(Settings.function_button_config) == 'object' then
+        Settings.function_button_config
+      else
+        {};
+    local disabledKeys =
+      if keyboardType == 't9' then
+        // tail 原先在九键打字态被禁用（当时它的通知动作是 backslash，九键下无意义）。
+        // 现在改成候选栏展开/收起，九键打字时同样需要，故不再禁用。
+        []
+      else if std.member(['alphabetic', 'numeric'], keyboardType) then
+        ['select', 'cut', 'copy', 'paste', 'tail']
+      else
+        [];
+    if std.member(disabledKeys, key) then
+      false
+    else
+      if std.objectHas(config, 'enable_notification') then config.enable_notification else true,
+}
