@@ -245,7 +245,8 @@ local frameImages(prefix) = [prefix + '_' + std.toString(i) + '.png' for i in st
   //
   // 与字母键完全同料（同一组渐变端点 / 描边 / 底边缘 / 阴影），只有圆角与
   // 内缩不同。用单独一层平色会比键帽渐变亮且没有立体层次，读起来对不上。
-  // -------------------------------------------------------------------------  toolbarCapsuleBackground(theme0, Settings, cornerRadius, insets)::
+  // -------------------------------------------------------------------------
+  toolbarCapsuleBackground(theme0, Settings, cornerRadius, insets)::
     local theme = resolveTheme(Settings, theme0);
     if !isEnabled(Settings) then
       styleFactories.makeGeometryStyle('00000000')
