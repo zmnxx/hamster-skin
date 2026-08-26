@@ -22,13 +22,15 @@ local toolbarOverrides = {
 };
 
 {
-  createButtonFactory(context, swipeUp, swipeDown)::
+  createButtonFactory(context, swipeUp, swipeDown, letters)::
     keyboard26ButtonFactory.create(context, swipeUp, swipeDown, {
       // 英文键盘一律用 symbol（直接上屏，不进 RIME）。
       // 原先这里按 others 里一个从未存在的 '英文键盘方案' 键在 character /
       // symbol 之间二选一，条件恒假，等于写死 symbol。
       actionFactory(key): { symbol: key },
       uppercasedActionFactory(key): { symbol: std.asciiUpper(key) },
+      // 短按气泡只为字母键生成（见下面的 keyHelpers.hintStyles）。
+      hintStyleKeys: letters,
     }),
 
   build(context, keyboardLayout)::
@@ -40,7 +42,7 @@ local toolbarOverrides = {
     local hintStyles = hintSymbolsStyles.getStyle(theme, hintSymbolsData.alphabetic);
     local letterSpecs = letter26KeysSpecs.get26KeySpecs(orientation, keyboardLayout);
     local letterKeys = [spec.key for spec in letterSpecs];
-    local createButton = self.createButtonFactory(context, swipeUp, swipeDown);
+    local createButton = self.createButtonFactory(context, swipeUp, swipeDown, letterKeys);
     keyboardLayout[if orientation == 'portrait' then '竖屏英文26键' else '横屏英文26键'] +
     swipeKeyStyles.getStyle('en', theme, swipeUp, swipeDown) +
     hintStyles +

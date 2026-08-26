@@ -1,6 +1,5 @@
 // 定义拼音 123 切换键，支持滑动、长按菜单和上下滑模式。
 local hintSymbolsStyles = import '../../../shared/styles/hintSymbolsStyles.libsonnet';
-local keyHelpers = import '../../../shared/buttonHelpers/key.libsonnet';
 local swipeKeyStyles = import '../../../shared/styles/swipeKeyStyles.libsonnet';
 local buttonInteraction = import '../../../shared/buttonHelpers/buttonInteraction.libsonnet';
 
@@ -23,7 +22,7 @@ local buttonInteraction = import '../../../shared/buttonHelpers/buttonInteractio
         )
       else
         {};
-    local rootStyles = baseHintStyles + extraHintStyles + extraSwipeStyles + keyHelpers.hintStyle('123');
+    local rootStyles = baseHintStyles + extraHintStyles + extraSwipeStyles;
     {
       '123Button': createButton(
         '123',
@@ -45,6 +44,8 @@ local buttonInteraction = import '../../../shared/buttonHelpers/buttonInteractio
         [if !slideEnabled then 'foregroundStyle']:
           ['123ButtonForegroundStyle'] +
           (if showIndicators then ['123ButtonUpForegroundStyle', '123ButtonDownForegroundStyle'] else []),
+        // 123 键没有短按气泡（没生成 123ButtonHintForegroundStyle），
+        // 隐去工厂写入的 hintStyle，避免悬空引用。
         hintStyle:: null,
         [if useHintSymbols then 'hintSymbolsStyle']: '123ButtonHintSymbolsStyle',
         [if useSwipeActions then 'swipeUpAction']: { keyboardType: swipeTargets.up },
@@ -57,6 +58,6 @@ local buttonInteraction = import '../../../shared/buttonHelpers/buttonInteractio
         { label: '2', action: { keyboardType: 'symbolic' }, styleName: 'symbolicStyle' },
         { label: '4', action: { keyboardType: 'emojis' }, styleName: 'emojisStyle' },
       ],
-    } + extraHintStyles + extraSwipeStyles + keyHelpers.hintStyle('123')
+    } + extraHintStyles + extraSwipeStyles
   ),
 }

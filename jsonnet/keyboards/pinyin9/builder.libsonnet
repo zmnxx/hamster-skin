@@ -44,13 +44,12 @@ local pinyin9T9 = import 't9.libsonnet';
             else null,
           ]
         )),
-        hintStyle: styleKey + 'ButtonHintStyle',
-        [styleKey + 'ButtonHintStyle']: {
-          backgroundStyle: 'alphabeticHintBackgroundStyle',
-          foregroundStyle: styleKey + 'ButtonHintForegroundStyle',
-          swipeUpForegroundStyle: styleKey + 'ButtonSwipeUpHintForegroundStyle',
-          swipeDownForegroundStyle: styleKey + 'ButtonSwipeDownHintForegroundStyle',
-        },
+        // 九键不写 hintStyle（短按气泡）。
+        // 元书按名字在**键盘根节点**查样式，而九键的气泡样式原本是嵌在按键
+        // 对象内部的，根节点查不到 —— 它从来没有渲染过；里面引用的
+        // <key>ButtonHintForegroundStyle 也没有任何地方生成
+        // （swipeKeyStyles 只为「有 label 的划动项」生成气泡前景，九键划动数据是空的）。
+        // 需要九键短按气泡时，要在根节点补 numberXButtonHintStyle 与对应前景。
         action: {
           character: key,
         },
@@ -327,11 +326,6 @@ local pinyin9T9 = import 't9.libsonnet';
       // 功能行专用背景：与 26 键页保持同一套间距，切键盘时键帽大小不变
       functionRowButtonBackgroundStyle:
         keycap.buttonBackground(theme, orientation, context.Settings, color, '字母键背景颜色-普通', '字母键背景颜色-高亮', {}, 'func'),
-      // 九键按键的 hintStyle 引用了 alphabeticHintBackgroundStyle，但九键页原本没有
-      // 在九键里定义它（样式名不存在时元书静默不渲染，所以九键长按气泡一直是无底的）。
-      // 仅在启用渐变键帽时补上定义，default 模式保持原状。
-      [if keycap.enabled(context.Settings) then 'alphabeticHintBackgroundStyle']:
-        keycap.hintBackground(theme, context.Settings, color),
       symbols: pinyin9T9.symbols,
     } +
     {

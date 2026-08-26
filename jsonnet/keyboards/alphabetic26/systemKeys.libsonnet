@@ -4,7 +4,6 @@ local center = import '../../shared/styles/center.libsonnet';
 local color = import '../../shared/styles/color.libsonnet';
 local fontSize = import '../../shared/styles/fontSize.libsonnet';
 local hintSymbolsStyles = import '../../shared/styles/hintSymbolsStyles.libsonnet';
-local keyHelpers = import '../../shared/buttonHelpers/key.libsonnet';
 local swipeKeyStyles = import '../../shared/styles/swipeKeyStyles.libsonnet';
 local styleFactories = import '../../shared/styles/styleFactories.libsonnet';
 local buttonInteraction = import '../../shared/buttonHelpers/buttonInteraction.libsonnet';
@@ -135,7 +134,7 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       '123',
       if orientation == 'portrait' then keyboardLayout['竖屏按键尺寸']['123键size'] else keyboardLayout['横屏按键尺寸']['123键size'],
       {},
-      $ + extraHintStyles + extraSwipeStyles + keyHelpers.hintStyle('123'),
+      $ + extraHintStyles + extraSwipeStyles,
       false
     ) + {
       backgroundStyle: 'systemButtonBackgroundStyle',
@@ -148,6 +147,8 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       [if !slideEnabled then 'foregroundStyle']:
         ['123ButtonForegroundStyle'] +
         (if showIndicators then ['123ButtonUpForegroundStyle', '123ButtonDownForegroundStyle'] else []),
+      // 123 键没有短按气泡（没生成 123ButtonHintForegroundStyle），
+      // 隐去工厂写入的 hintStyle，避免悬空引用。
       hintStyle:: null,
       [if useHintSymbols then 'hintSymbolsStyle']: '123ButtonHintSymbolsStyle',
       [if useSwipeActions then 'swipeUpAction']: { keyboardType: swipeTargets.up },
@@ -160,7 +161,7 @@ local keycap = import '../../shared/styles/keycap.libsonnet';
       { label: '2', action: { keyboardType: 'symbolic' }, styleName: 'symbolicStyle' },
       { label: '4', action: { keyboardType: 'emojis' }, styleName: 'emojisStyle' },
     ],
-    } + extraHintStyles + extraSwipeStyles + keyHelpers.hintStyle('123') + keycap.animationRegistry(settings, animation) + {
+    } + extraHintStyles + extraSwipeStyles + keycap.animationRegistry(settings, animation) + {
 
     spaceButton: createButton(
       'space',

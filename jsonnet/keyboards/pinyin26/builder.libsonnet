@@ -24,15 +24,12 @@ local functionButtonStyles = import '../../shared/functionButtons/styles.libsonn
     keyboard26ButtonFactory.create(context, swipeUp, swipeDown, {
       actionFactory(key): { character: key },
       uppercasedActionFactory(key): { character: std.asciiUpper(key) },
+      // 短按气泡只为字母键生成（keyHelpers.hintStyles(letterKeys)）。
+      hintStyleKeys: letters,
       notificationFactory(key):
         if std.member(letters, key) then
-          std.filter(
-            function(x) x != null,
-            [
-              if swipeAssistMode == 'none' then key + 'ButtonBackslashNotification' else null,
-              if swipeAssistMode != 'none' then key + 'ButtonSwipeAssistNotification' else null,
-            ]
-          )
+          [if swipeAssistMode == 'none' then key + 'ButtonBackslashNotification'
+           else key + 'ButtonSwipeAssistNotification']
         else
           null,
       foregroundSwipeUp: foregroundSwipeUp,

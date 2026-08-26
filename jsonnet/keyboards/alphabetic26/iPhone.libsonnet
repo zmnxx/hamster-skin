@@ -8,6 +8,8 @@ local defaultContext = keyboardRuntime.new(Settings, 'light', 'portrait', 'iPhon
 local defaultSwipeDataRoot = swipeData.genSwipeenData(defaultContext.deviceType);
 local defaultSwipeUp = if std.objectHas(defaultSwipeDataRoot, 'swipe_up') then defaultSwipeDataRoot.swipe_up else {};
 local defaultSwipeDown = if std.objectHas(defaultSwipeDataRoot, 'swipe_down') then defaultSwipeDataRoot.swipe_down else {};
+// iPad 覆写层生成的键都是功能键（不在字母表里），传空列表即不写 hintStyle。
+local defaultLetterKeys = [];
 
 local build(theme, orientation, keyboardLayout=null) =
   local context = keyboardRuntime.new(Settings, theme, orientation, 'iPhone');
@@ -15,10 +17,13 @@ local build(theme, orientation, keyboardLayout=null) =
   keyboard26AlphabeticBuilder.build(context, resolvedKeyboardLayout);
 
 {
+  // createButton 供 iPad 覆写层复用（iPadBuilder 只拿它生成几个平板专属按键，
+  // 传的 context 是 light / portrait 的占位值，样式名与主题无关）。
   createButton: keyboard26AlphabeticBuilder.createButtonFactory(
     defaultContext,
     defaultSwipeUp,
-    defaultSwipeDown
+    defaultSwipeDown,
+    defaultLetterKeys
   ),
   keyboard(theme, orientation, keyboardLayout):
     build(theme, orientation, keyboardLayout),
