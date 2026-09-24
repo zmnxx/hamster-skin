@@ -3,7 +3,7 @@
   // 9:  九宫格（默认）
   // 26: 全键
   // 27: 27 键（26 键 + 分号键，供双拼方案输入 ing）
-  keyboard_layout: 9,
+  keyboard_layout: 26,
 
   // 9键按键长按符号是否直接上屏
   t9_hint_symbol_direct_output: true,
