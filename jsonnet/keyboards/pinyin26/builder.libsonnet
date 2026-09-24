@@ -193,6 +193,8 @@ local functionButtonStyles = import '../../shared/functionButtons/styles.libsonn
     local includeSemicolon = settings.keyboard_layout == 27;
     local swipeAssistMode = self.resolveSwipeAssistMode(context);
     local swipeDataRoot = swipeData.genSwipeData(context.deviceType);
+    local rawSwipeUp = if std.objectHas(swipeDataRoot, 'swipe_up') then swipeDataRoot.swipe_up else {};
+    local rawSwipeDown = if std.objectHas(swipeDataRoot, 'swipe_down') then swipeDataRoot.swipe_down else {};
     local pinyin26SwipeUp = rawSwipeUp {
       z: { action: { symbol: '@' }, label: { text: '@' } },
       x: { action: { symbol: '*' }, label: { text: '*' } },
