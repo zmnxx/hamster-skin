@@ -15,5 +15,5 @@ local moduleForDevice(deviceType, swapped=null) = {
 };
 
 moduleForDevice('iPhone') + {
-  layout(deviceType): moduleForDevice(deviceType),
+  layout(deviceType, swapped=null): moduleForDevice(deviceType, swapped),
 }
