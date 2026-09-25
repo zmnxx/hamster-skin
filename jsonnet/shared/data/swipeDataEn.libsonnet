@@ -13,7 +13,7 @@ local genSwipeenData(deviceType) = (
     swipe_up: {
       [key]: toSymbol(pinyin.swipe_up[key])
       for key in lowerKeys if std.objectHas(pinyin.swipe_up, key)
-    } + englishUp + {
+    } + {
       spaceLeft: { action: { symbol: '.' } },
       spaceRight: { action: { symbol: '.' } },
       backspace: { action: { shortcut: '#deleteText' } },
